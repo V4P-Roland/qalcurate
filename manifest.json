@@ -1,6 +1,6 @@
 {
-  "name": "EchoSync — Gespräche aufnehmen & transkribieren",
-  "short_name": "EchoSync",
+  "name": "Qalcurate — Gespräche aufnehmen & transkribieren",
+  "short_name": "Qalcurate",
   "description": "Zeichnet Gespräche auf, transkribiert sie live im Browser und übermittelt sie automatisch an n8n — auch nach einer Offline-Phase.",
   "start_url": "./index.html",
   "scope": "./",

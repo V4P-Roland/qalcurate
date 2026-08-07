@@ -1,7 +1,7 @@
 'use strict';
 
 /* ==========================================================================
-   EchoSync — Aufnahme, Live-Transkription, Offline-Warteschlange, n8n-Sync
+   Qalcurate — Aufnahme, Live-Transkription, Offline-Warteschlange, n8n-Sync
    ========================================================================== */
 
 /* ---------------- DOM refs ---------------- */
@@ -110,7 +110,7 @@ function defaultTitle() {
 /* ==========================================================================
    IndexedDB layer
    ========================================================================== */
-const DB_NAME = 'echosync-db';
+const DB_NAME = 'qalcurate-db';
 const DB_VERSION = 1;
 let dbPromise = null;
 
@@ -235,7 +235,7 @@ async function syncOne(rec, webhookUrlParam) {
     fd.append('createdAt', rec.createdAt);
     fd.append('durationSec', String(rec.durationSec));
     fd.append('transcript', rec.transcript || '');
-    fd.append('source', 'echosync-webapp');
+    fd.append('source', 'qalcurate-webapp');
     const ext = (rec.mimeType || '').includes('mp4') ? 'm4a' : 'webm';
     fd.append('audio', rec.audioBlob, `${rec.id}.${ext}`);
 
@@ -705,11 +705,11 @@ els.testWebhookBtn.addEventListener('click', async () => {
   try {
     const fd = new FormData();
     fd.append('id', 'test-' + Date.now());
-    fd.append('title', 'EchoSync Verbindungstest');
+    fd.append('title', 'Qalcurate Verbindungstest');
     fd.append('createdAt', new Date().toISOString());
     fd.append('durationSec', '0');
-    fd.append('transcript', 'Dies ist eine Testübermittlung von EchoSync.');
-    fd.append('source', 'echosync-webapp-test');
+    fd.append('transcript', 'Dies ist eine Testübermittlung von Qalcurate.');
+    fd.append('source', 'qalcurate-webapp-test');
     const res = await fetch(url, { method: 'POST', body: fd });
     showToast(res.ok ? 'Verbindung erfolgreich — n8n hat geantwortet.' : `n8n antwortete mit Fehler: HTTP ${res.status}`);
   } catch (err) {

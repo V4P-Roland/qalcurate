@@ -1,9 +1,9 @@
 'use strict';
 
-/* EchoSync service worker — caches the app shell so the UI itself loads
+/* Qalcurate service worker — caches the app shell so the UI itself loads
    offline. Recording data lives in IndexedDB (handled in app.js), not here. */
 
-const CACHE_NAME = 'echosync-shell-v2';
+const CACHE_NAME = 'qalcurate-shell-v3';
 const CORE_ASSETS = [
   './',
   './index.html',
