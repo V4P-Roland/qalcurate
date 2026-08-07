@@ -34,10 +34,15 @@
 
   <!-- ============ HEADER ============ -->
   <header class="app-header">
-    <div class="brand">
-      <img class="brand-logo brand-logo-light" src="./assets/logo/qalcurate-icon-color.svg" alt="Qalcurate Logo" width="42" height="42" />
-      <img class="brand-logo brand-logo-dark" src="./assets/logo/qalcurate-icon-white.svg" alt="Qalcurate Logo" width="42" height="42" />
-      <span class="brand-name">Qalcurate</span>
+    <div class="header-left">
+      <button class="icon-btn" id="menuToggle" aria-label="Menü öffnen" aria-expanded="false" aria-controls="sideMenu" data-testid="button-menu-toggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div class="brand">
+        <img class="brand-logo brand-logo-light" src="./assets/logo/qalcurate-icon-color.svg" alt="Qalcurate Logo" width="42" height="42" />
+        <img class="brand-logo brand-logo-dark" src="./assets/logo/qalcurate-icon-white.svg" alt="Qalcurate Logo" width="42" height="42" />
+        <span class="brand-name">Qalcurate</span>
+      </div>
     </div>
     <div class="header-actions">
       <span class="status-chip" id="statusChip" data-state="online">
@@ -49,6 +54,31 @@
       </button>
     </div>
   </header>
+
+  <!-- ============ SIDE MENU ============ -->
+  <div class="side-menu-backdrop" id="sideMenuBackdrop" hidden></div>
+  <aside class="side-menu" id="sideMenu" aria-hidden="true" aria-label="Funktionsmenü">
+    <div class="side-menu-header">
+      <span class="side-menu-title">Funktionen</span>
+      <button class="icon-btn" id="sideMenuClose" aria-label="Menü schließen" data-testid="button-close-menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <nav class="side-menu-list" aria-label="Funktionsauswahl">
+      <button class="side-menu-item is-active" data-module="transkript" data-testid="menu-item-transkript">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+        Transkript
+      </button>
+      <button class="side-menu-item" data-module="voice-agent" data-testid="menu-item-voice-agent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4v4a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
+        Voice Agent
+      </button>
+      <button class="side-menu-item" data-module="video-agent" data-testid="menu-item-video-agent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        Video Agent
+      </button>
+    </nav>
+  </aside>
 
   <!-- ============ MAIN ============ -->
   <main class="app-main" id="mainContent">
@@ -173,14 +203,32 @@
       </div>
 
       <div class="settings-section">
-        <h2>Daten</h2>
-        <p class="about-text">Alle Aufnahmen werden ausschließlich lokal auf diesem Gerät gespeichert (IndexedDB), bis sie erfolgreich an den Webhook übermittelt wurden.</p>
-        <button class="btn btn-danger" id="clearDataBtn" data-testid="button-clear-data">Alle lokalen Daten löschen</button>
-      </div>
-
-      <div class="settings-section">
         <h2>Über Qalcurate</h2>
         <p class="about-text">Qalcurate ist eine installierbare Web-App (PWA). Füge sie über das Browser-Menü „Zum Startbildschirm hinzufügen“ deinem Homescreen hinzu, um sie wie eine native App zu nutzen. Version 1.0.</p>
+      </div>
+    </section>
+
+    <!-- ---------- VOICE AGENT VIEW (placeholder) ---------- -->
+    <section class="view" id="view-voice-agent" data-view="voice-agent" aria-labelledby="voiceAgentTitle">
+      <div>
+        <h1 class="page-title" id="voiceAgentTitle">Voice Agent</h1>
+        <p class="page-subtitle">Diese Funktion ist in Vorbereitung.</p>
+      </div>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a4 4 0 0 0-4 4v4a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
+        <p>Voice Agent ist bald verfügbar.</p>
+      </div>
+    </section>
+
+    <!-- ---------- VIDEO AGENT VIEW (placeholder) ---------- -->
+    <section class="view" id="view-video-agent" data-view="video-agent" aria-labelledby="videoAgentTitle">
+      <div>
+        <h1 class="page-title" id="videoAgentTitle">Video Agent</h1>
+        <p class="page-subtitle">Diese Funktion ist in Vorbereitung.</p>
+      </div>
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+        <p>Video Agent ist bald verfügbar.</p>
       </div>
     </section>
 

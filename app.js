@@ -13,6 +13,14 @@ const els = {
   navBtns: document.querySelectorAll('.nav-btn'),
   views: document.querySelectorAll('.view'),
   navHistoryBadge: $('#navHistoryBadge'),
+  bottomNav: $('.bottom-nav'),
+  appShell: $('.app-shell'),
+
+  menuToggle: $('#menuToggle'),
+  sideMenu: $('#sideMenu'),
+  sideMenuBackdrop: $('#sideMenuBackdrop'),
+  sideMenuClose: $('#sideMenuClose'),
+  sideMenuItems: document.querySelectorAll('.side-menu-item'),
 
   recorderCard: $('#recorderCard'),
   titleInput: $('#titleInput'),
@@ -39,7 +47,6 @@ const els = {
   langSelect: $('#langSelect'),
   pendingCountVal: $('#pendingCountVal'),
   connStatusVal: $('#connStatusVal'),
-  clearDataBtn: $('#clearDataBtn'),
 
   toastStack: $('#toastStack'),
 };
@@ -67,12 +74,64 @@ const els = {
 })();
 
 /* ---------------- Navigation ---------------- */
-function switchView(name) {
+const TRANSKRIPT_VIEWS = ['recorder', 'history', 'settings'];
+let activeGlobalView = 'recorder';
+let activeTranskriptView = 'recorder';
+
+function switchView(name, { fromSideMenu = false } = {}) {
+  // Requirement: keep the transcript visible in the recorder view after stopping
+  // a recording, until another view is opened — then it should be empty again.
+  if (activeGlobalView === 'recorder' && name !== 'recorder' && !isRecording) {
+    finalTranscript = '';
+    lastInterimText = '';
+    renderTranscript('', '');
+  }
+
+  activeGlobalView = name;
+  if (TRANSKRIPT_VIEWS.includes(name)) {
+    activeTranskriptView = name;
+    currentModule = 'transkript';
+  } else {
+    currentModule = name; // 'voice-agent' | 'video-agent'
+  }
+
   els.views.forEach((v) => v.classList.toggle('is-active', v.dataset.view === name));
   els.navBtns.forEach((b) => b.classList.toggle('is-active', b.dataset.nav === name));
+  els.sideMenuItems.forEach((b) => b.classList.toggle('is-active', b.dataset.module === currentModule));
+  els.bottomNav.hidden = currentModule !== 'transkript';
+
   if (name === 'history') renderHistory();
+  if (fromSideMenu) closeSideMenu();
 }
 els.navBtns.forEach((btn) => btn.addEventListener('click', () => switchView(btn.dataset.nav)));
+
+/* ---------------- Side menu ---------------- */
+let currentModule = 'transkript';
+function openSideMenu() {
+  els.sideMenu.classList.add('is-open');
+  els.sideMenu.setAttribute('aria-hidden', 'false');
+  els.sideMenuBackdrop.hidden = false;
+  els.menuToggle.setAttribute('aria-expanded', 'true');
+}
+function closeSideMenu() {
+  els.sideMenu.classList.remove('is-open');
+  els.sideMenu.setAttribute('aria-hidden', 'true');
+  els.sideMenuBackdrop.hidden = true;
+  els.menuToggle.setAttribute('aria-expanded', 'false');
+}
+els.menuToggle.addEventListener('click', () => {
+  if (els.sideMenu.classList.contains('is-open')) closeSideMenu();
+  else openSideMenu();
+});
+els.sideMenuClose.addEventListener('click', closeSideMenu);
+els.sideMenuBackdrop.addEventListener('click', closeSideMenu);
+els.sideMenuItems.forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const mod = btn.dataset.module;
+    if (mod === 'transkript') switchView(activeTranskriptView, { fromSideMenu: true });
+    else switchView(mod, { fromSideMenu: true });
+  });
+});
 
 /* ---------------- Toasts ---------------- */
 function showToast(msg, duration = 2800) {
@@ -223,6 +282,8 @@ async function updatePendingUI() {
 }
 
 async function syncOne(rec, webhookUrlParam) {
+  // Defense-in-depth: never attempt (or count as failed) a submission while offline.
+  if (!navigator.onLine) return false;
   const webhookUrl = webhookUrlParam ?? (await dbGetSetting('webhookUrl', ''));
   if (!webhookUrl) {
     showToast('Bitte zuerst eine Webhook-URL in den Einstellungen speichern.');
@@ -258,28 +319,36 @@ async function syncOne(rec, webhookUrlParam) {
 
 let syncInFlight = false;
 async function trySync({ silent = true } = {}) {
+  // Set the lock synchronously, before any `await`, so that overlapping
+  // triggers (online event, visibilitychange, init(), the interval, manual
+  // saves/resends) can never race past this guard concurrently — this was
+  // the root cause of a single recording being submitted multiple times.
   if (!navigator.onLine || syncInFlight) return;
-  const webhookUrl = await dbGetSetting('webhookUrl', '');
-  if (!webhookUrl) return;
-  const recs = await dbGetAllRecordings();
-  const pending = recs.filter((r) => r.status !== 'synced');
-  if (!pending.length) return;
-
   syncInFlight = true;
-  setConnState('syncing');
-  let okCount = 0;
-  for (const rec of pending) {
-    const ok = await syncOne(rec, webhookUrl);
-    if (ok) okCount++;
-  }
-  syncInFlight = false;
-  setConnState(navigator.onLine ? 'online' : 'offline');
-  await updatePendingUI();
-  await renderHistory();
-  if (!silent && okCount > 0) {
-    showToast(`${okCount} Aufnahme(n) übermittelt.`);
-  } else if (!silent && okCount === 0) {
-    showToast('Übermittlung fehlgeschlagen. Wird später erneut versucht.');
+  try {
+    const webhookUrl = await dbGetSetting('webhookUrl', '');
+    if (!webhookUrl) return;
+    const recs = await dbGetAllRecordings();
+    const pending = recs.filter((r) => r.status !== 'synced');
+    if (!pending.length) return;
+
+    setConnState('syncing');
+    let okCount = 0;
+    for (const rec of pending) {
+      if (!navigator.onLine) break; // connection dropped mid-sync — stop immediately
+      const ok = await syncOne(rec, webhookUrl);
+      if (ok) okCount++;
+    }
+    setConnState(navigator.onLine ? 'online' : 'offline');
+    await updatePendingUI();
+    await renderHistory();
+    if (!silent && okCount > 0) {
+      showToast(`${okCount} Aufnahme(n) übermittelt.`);
+    } else if (!silent && okCount === 0) {
+      showToast('Übermittlung fehlgeschlagen. Wird später erneut versucht.');
+    }
+  } finally {
+    syncInFlight = false;
   }
 }
 
@@ -494,6 +563,13 @@ function resetRecorderUI() {
   els.timer.textContent = '00:00';
 }
 
+// After a successful save, keep the transcript visible in the recorder view
+// until the user navigates to another view (see switchView()).
+function resetRecorderUIAfterSave() {
+  els.titleInput.value = '';
+  els.timer.textContent = '00:00';
+}
+
 async function startRecording() {
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -525,6 +601,7 @@ async function startRecording() {
   mediaRecorder.start();
 
   isRecording = true;
+  els.appShell.classList.add('is-recording');
   els.recorderCard.dataset.recording = 'true';
   els.recordBtn.setAttribute('aria-label', 'Aufnahme beenden');
   els.recordHint.textContent = 'Tippen, um die Aufnahme zu beenden';
@@ -550,6 +627,7 @@ async function startRecording() {
 function stopRecording() {
   if (!isRecording) return;
   isRecording = false;
+  els.appShell.classList.remove('is-recording');
   els.recorderCard.dataset.recording = 'false';
   els.recordBtn.setAttribute('aria-label', 'Aufnahme starten');
   els.recordHint.textContent = 'Tippen, um die Aufnahme zu starten';
@@ -605,7 +683,7 @@ async function saveRecording(blob, mimeType, durationSec, transcript) {
   };
   await dbPutRecording(rec);
   showToast(transcript ? 'Aufnahme gespeichert.' : 'Aufnahme gespeichert (ohne Transkript).');
-  resetRecorderUI();
+  resetRecorderUIAfterSave();
   await updatePendingUI();
   trySync({ silent: true });
 }
@@ -689,6 +767,10 @@ async function renderHistory() {
     if (resendBtn) {
       resendBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
+        if (!navigator.onLine) {
+          showToast('Keine Verbindung — Übermittlung kann nicht gestartet werden.');
+          return;
+        }
         resendBtn.disabled = true;
         resendBtn.textContent = 'Sende…';
         const fresh = (await dbGetAllRecordings()).find((r) => r.id === rec.id);
@@ -794,32 +876,6 @@ els.langSelect.addEventListener('change', async () => {
   await dbSetSetting('language', currentLanguage);
   showToast('Sprache gespeichert.');
 });
-
-(function wireClearData() {
-  let armed = false;
-  let armTimeout = null;
-  const originalText = els.clearDataBtn.textContent;
-  els.clearDataBtn.addEventListener('click', async () => {
-    if (!armed) {
-      armed = true;
-      els.clearDataBtn.textContent = 'Wirklich alles löschen? Nochmal tippen zum Bestätigen';
-      armTimeout = setTimeout(() => {
-        armed = false;
-        els.clearDataBtn.textContent = originalText;
-      }, 4000);
-      return;
-    }
-    clearTimeout(armTimeout);
-    armed = false;
-    els.clearDataBtn.textContent = originalText;
-    audioUrlCache.forEach((url) => URL.revokeObjectURL(url));
-    audioUrlCache.clear();
-    await dbClearRecordings();
-    await updatePendingUI();
-    await renderHistory();
-    showToast('Alle lokalen Daten wurden gelöscht.');
-  });
-})();
 
 /* ==========================================================================
    Service worker
