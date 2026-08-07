@@ -3,7 +3,7 @@
 /* EchoSync service worker — caches the app shell so the UI itself loads
    offline. Recording data lives in IndexedDB (handled in app.js), not here. */
 
-const CACHE_NAME = 'echosync-shell-v1';
+const CACHE_NAME = 'echosync-shell-v2';
 const CORE_ASSETS = [
   './',
   './index.html',
@@ -16,6 +16,12 @@ const CORE_ASSETS = [
   './assets/icons/icon-512-maskable.png',
   './assets/icons/apple-touch-icon.png',
   './assets/icons/favicon-32.png',
+  './assets/logo/qalcurate-icon-color.svg',
+  './assets/logo/qalcurate-icon-white.svg',
+  './assets/fonts/ProductSans-Regular.woff2',
+  './assets/fonts/ProductSans-Medium.woff2',
+  './assets/fonts/ProductSans-Bold.woff2',
+  './assets/fonts/ProductSans-Black.woff2',
 ];
 
 self.addEventListener('install', (event) => {

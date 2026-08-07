@@ -1,7 +1,51 @@
 /* style.css — EchoSync design tokens + components */
+/* Brand: Qalcurate — Discover. Sustain. Ability. */
 
 /* ============ FONTS ============ */
-/* Cabinet Grotesk (display) + Satoshi (body) via Fontshare, JetBrains Mono (timer/readouts) via Google Fonts */
+/* Product Sans (display + body, Qalcurate brand typeface), JetBrains Mono (timer/readouts) via Google Fonts */
+
+@font-face {
+  font-family: 'Product Sans';
+  src: url('./assets/fonts/ProductSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Product Sans';
+  src: url('./assets/fonts/ProductSans-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Product Sans';
+  src: url('./assets/fonts/ProductSans-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Product Sans';
+  src: url('./assets/fonts/ProductSans-MediumItalic.woff2') format('woff2');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Product Sans';
+  src: url('./assets/fonts/ProductSans-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Product Sans';
+  src: url('./assets/fonts/ProductSans-Black.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ============ TYPE SCALE ============ */
 :root {
@@ -12,8 +56,8 @@
   --text-xl: clamp(1.5rem, 1.2rem + 1.25vw, 2.25rem);
   --text-2xl: clamp(2rem, 1.2rem + 2.5vw, 3.25rem);
 
-  --font-display: 'Cabinet Grotesk', 'General Sans', sans-serif;
-  --font-body: 'Satoshi', 'Inter', sans-serif;
+  --font-display: 'Product Sans', 'General Sans', sans-serif;
+  --font-body: 'Product Sans', 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', 'Menlo', monospace;
 
   /* 4px spacing */
@@ -43,72 +87,73 @@
 }
 
 /* ============ COLOR — LIGHT (default) ============ */
+/* Qalcurate palette: Teal #0A4C3F · Deep Teal #003027 · Persian Teal #32A597 · Faded Teal #287F6E · Grey #D7E0DE */
 :root,
 [data-theme='light'] {
-  --color-bg: #f6f4f1;
+  --color-bg: #f5f9f8;
   --color-surface: #ffffff;
-  --color-surface-2: #fbf9f7;
-  --color-surface-offset: #eeebe6;
-  --color-surface-offset-2: #e6e2dc;
-  --color-divider: #e4e0da;
-  --color-border: #d8d3cb;
+  --color-surface-2: #fbfdfc;
+  --color-surface-offset: #eef4f2;
+  --color-surface-offset-2: #e3ece9;
+  --color-divider: #dce7e3;
+  --color-border: #c9d9d4;
 
-  --color-text: #191712;
-  --color-text-muted: #6f6b62;
-  --color-text-faint: #aaa59a;
-  --color-text-inverse: #f6f4f1;
+  --color-text: #0a2620;
+  --color-text-muted: #4f6b64;
+  --color-text-faint: #8fa69f;
+  --color-text-inverse: #f5f9f8;
 
-  /* Primary accent — recorder red/orange */
-  --color-primary: #d9481c;
-  --color-primary-hover: #b83c17;
-  --color-primary-active: #963111;
-  --color-primary-highlight: #f6ddd2;
-  --color-primary-strong: #ff5a36;
+  /* Primary accent — Persian Teal (brand CTA) */
+  --color-primary: #32a597;
+  --color-primary-hover: #287f6e;
+  --color-primary-active: #0a4c3f;
+  --color-primary-highlight: #dcefec;
+  --color-primary-strong: #1f8c7d;
 
-  /* Success — synced */
-  --color-success: #0a7d70;
-  --color-success-hover: #08655b;
-  --color-success-highlight: #d4e9e4;
+  /* Success — synced (Persian Teal family) */
+  --color-success: #287f6e;
+  --color-success-hover: #1d5f52;
+  --color-success-highlight: #d7e0de;
 
   /* Warning — pending */
   --color-warning: #a5680a;
   --color-warning-hover: #855308;
   --color-warning-highlight: #f0e2c6;
 
-  /* Error */
+  /* Error — recording / destructive */
   --color-error: #c22a3e;
   --color-error-hover: #9c2132;
   --color-error-highlight: #f4d7dc;
 
-  --shadow-sm: 0 1px 2px oklch(0.2 0.02 40 / 0.06);
-  --shadow-md: 0 6px 16px oklch(0.2 0.02 40 / 0.10);
-  --shadow-lg: 0 16px 40px oklch(0.2 0.02 40 / 0.16);
+  --shadow-sm: 0 1px 2px oklch(0.2 0.03 175 / 0.08);
+  --shadow-md: 0 6px 16px oklch(0.2 0.03 175 / 0.12);
+  --shadow-lg: 0 16px 40px oklch(0.2 0.03 175 / 0.18);
 }
 
 /* ============ COLOR — DARK ============ */
 [data-theme='dark'] {
-  --color-bg: #131110;
-  --color-surface: #1a1816;
-  --color-surface-2: #1f1c1a;
-  --color-surface-offset: #24211e;
-  --color-surface-offset-2: #2b2724;
-  --color-divider: #29251f;
-  --color-border: #3a352e;
+  --color-bg: #051f19;
+  --color-surface: #0a2a22;
+  --color-surface-2: #0d3128;
+  --color-surface-offset: #103a30;
+  --color-surface-offset-2: #14443a;
+  --color-divider: #163f34;
+  --color-border: #1f5346;
 
-  --color-text: #f3efe9;
-  --color-text-muted: #a29c91;
-  --color-text-faint: #6b6459;
-  --color-text-inverse: #191712;
+  --color-text: #eaf5f2;
+  --color-text-muted: #9dc2b8;
+  --color-text-faint: #5f8579;
+  --color-text-inverse: #0a2620;
 
-  --color-primary: #ff6a45;
-  --color-primary-hover: #ff8262;
-  --color-primary-active: #e85a37;
-  --color-primary-highlight: #3a2620;
-  --color-primary-strong: #ff7a52;
+  --color-primary: #3dbbab;
+  --color-primary-hover: #57c9bb;
+  --color-primary-active: #32a597;
+  --color-primary-highlight: #123a32;
+  --color-primary-strong: #4fd3c3;
 
-  --color-success: #35d6c4;
-  --color-success-hover: #5fe2d3;
-  --color-success-highlight: #1c3532;
+  --color-success: #3dbbab;
+  --color-success-hover: #57c9bb;
+  --color-success-highlight: #123a32;
 
   --color-warning: #f2b84b;
   --color-warning-hover: #f5c977;
@@ -125,25 +170,25 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --color-bg: #131110;
-    --color-surface: #1a1816;
-    --color-surface-2: #1f1c1a;
-    --color-surface-offset: #24211e;
-    --color-surface-offset-2: #2b2724;
-    --color-divider: #29251f;
-    --color-border: #3a352e;
-    --color-text: #f3efe9;
-    --color-text-muted: #a29c91;
-    --color-text-faint: #6b6459;
-    --color-text-inverse: #191712;
-    --color-primary: #ff6a45;
-    --color-primary-hover: #ff8262;
-    --color-primary-active: #e85a37;
-    --color-primary-highlight: #3a2620;
-    --color-primary-strong: #ff7a52;
-    --color-success: #35d6c4;
-    --color-success-hover: #5fe2d3;
-    --color-success-highlight: #1c3532;
+    --color-bg: #051f19;
+    --color-surface: #0a2a22;
+    --color-surface-2: #0d3128;
+    --color-surface-offset: #103a30;
+    --color-surface-offset-2: #14443a;
+    --color-divider: #163f34;
+    --color-border: #1f5346;
+    --color-text: #eaf5f2;
+    --color-text-muted: #9dc2b8;
+    --color-text-faint: #5f8579;
+    --color-text-inverse: #0a2620;
+    --color-primary: #3dbbab;
+    --color-primary-hover: #57c9bb;
+    --color-primary-active: #32a597;
+    --color-primary-highlight: #123a32;
+    --color-primary-strong: #4fd3c3;
+    --color-success: #3dbbab;
+    --color-success-hover: #57c9bb;
+    --color-success-highlight: #123a32;
     --color-warning: #f2b84b;
     --color-warning-hover: #f5c977;
     --color-warning-highlight: #3a2f1a;
@@ -206,8 +251,18 @@ a.sr-only:focus-visible {
 .brand-logo {
   width: 30px;
   height: 30px;
-  color: var(--color-primary);
   flex-shrink: 0;
+  object-fit: contain;
+}
+
+.brand-logo-dark { display: none; }
+
+[data-theme='dark'] .brand-logo-light { display: none; }
+[data-theme='dark'] .brand-logo-dark { display: block; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .brand-logo-light { display: none; }
+  :root:not([data-theme]) .brand-logo-dark { display: block; }
 }
 
 .brand-name {
