@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>EchoSync — Gespräche aufnehmen &amp; transkribieren</title>
+<meta name="description" content="EchoSync zeichnet Gespräche auf, transkribiert sie live im Browser und übermittelt sie automatisch an n8n — auch wenn du zwischenzeitlich offline warst." />
+
+<meta name="theme-color" content="#131110" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="icon" href="./assets/icons/favicon-32.png" sizes="32x32" />
+<link rel="apple-touch-icon" href="./assets/icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="EchoSync" />
+
+<meta property="og:title" content="EchoSync — Gespräche aufnehmen & transkribieren" />
+<meta property="og:description" content="Aufnahme, Live-Transkription und automatische Übermittlung an n8n — auch offline." />
+<meta property="og:type" content="website" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700,500&f[]=satoshi@400,500,700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="./base.css" />
+<link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+
+<a class="sr-only" href="#mainContent">Zum Inhalt springen</a>
+
+<div class="app-shell">
+
+  <!-- ============ HEADER ============ -->
+  <header class="app-header">
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 32 32" fill="none" aria-label="EchoSync Logo">
+        <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="1.6" opacity="0.35"/>
+        <rect x="9" y="13" width="2.6" height="6" rx="1.3" fill="currentColor"/>
+        <rect x="13.4" y="9" width="2.6" height="14" rx="1.3" fill="currentColor"/>
+        <rect x="17.8" y="6" width="2.6" height="20" rx="1.3" fill="currentColor"/>
+        <rect x="22.2" y="11" width="2.6" height="10" rx="1.3" fill="currentColor"/>
+      </svg>
+      <span class="brand-name">EchoSync</span>
+    </div>
+    <div class="header-actions">
+      <span class="status-chip" id="statusChip" data-state="online">
+        <span class="status-dot"></span>
+        <span id="statusChipLabel">Online</span>
+      </span>
+      <button class="icon-btn" id="themeToggle" data-theme-toggle aria-label="Zu dunklem Modus wechseln">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ MAIN ============ -->
+  <main class="app-main" id="mainContent">
+
+    <!-- ---------- RECORDER VIEW ---------- -->
+    <section class="view is-active" id="view-recorder" data-view="recorder" aria-labelledby="recorderTitle">
+      <div>
+        <h1 class="page-title" id="recorderTitle">Aufnahme</h1>
+        <p class="page-subtitle">Zeichne ein Gespräch auf — bei fehlender Verbindung wird es lokal gespeichert und automatisch übermittelt, sobald du wieder online bist.</p>
+      </div>
+
+      <div class="banner" id="asrBanner" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 0 0 3.34 20h17.32a1.5 1.5 0 0 0 1.23-2.36L13.71 3.86a1.5 1.5 0 0 0-2.42 0z"/></svg>
+        <span id="asrBannerText">Live-Transkription wird von diesem Browser nicht unterstützt. Die Audioaufnahme funktioniert trotzdem — installiere die App am besten in Chrome oder Edge für Live-Transkription.</span>
+      </div>
+
+      <div class="recorder-card" data-recording="false" id="recorderCard">
+        <div class="title-input-row">
+          <label for="titleInput">Titel der Aufnahme</label>
+          <input type="text" class="title-input" id="titleInput" placeholder="z. B. Kundengespräch Müller" data-testid="input-recording-title" />
+        </div>
+
+        <div class="waveform-wrap">
+          <canvas id="waveform" width="600" height="96"></canvas>
+          <span class="waveform-idle-label" id="waveformIdleLabel">Bereit zur Aufnahme</span>
+        </div>
+
+        <div class="timer-row">
+          <span class="rec-indicator"><span class="rec-dot"></span>Aufnahme läuft</span>
+          <span class="timer" id="timer" data-testid="text-timer">00:00</span>
+        </div>
+
+        <div class="record-btn-wrap">
+          <button class="record-btn" id="recordBtn" aria-label="Aufnahme starten" data-testid="button-record">
+            <svg class="record-btn-icon-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+            <svg class="record-btn-icon-stop" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+          </button>
+        </div>
+        <p class="record-hint" id="recordHint">Tippen, um die Aufnahme zu starten</p>
+
+        <div class="transcript-panel">
+          <div class="transcript-label">
+            <span>Transkript</span>
+            <span class="asr-support-badge" id="asrSupportBadge" hidden>nicht verfügbar</span>
+          </div>
+          <div class="transcript-box" id="transcriptBox" data-placeholder="Das Transkript erscheint hier während der Aufnahme…" data-empty="true" data-testid="text-transcript" tabindex="0"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- HISTORY VIEW ---------- -->
+    <section class="view" id="view-history" data-view="history" aria-labelledby="historyTitle">
+      <div>
+        <h1 class="page-title" id="historyTitle">Verlauf</h1>
+        <p class="page-subtitle">Alle Aufnahmen mit Übermittlungsstatus.</p>
+      </div>
+
+      <div class="history-toolbar">
+        <button class="pill-btn" id="syncNowBtn" data-testid="button-sync-now">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Jetzt synchronisieren
+        </button>
+        <span class="status-chip" data-state="offline" id="pendingChip" hidden>
+          <span class="status-dot"></span>
+          <span id="pendingChipLabel">0 ausstehend</span>
+        </span>
+      </div>
+
+      <div class="recording-list" id="recordingList"></div>
+
+      <div class="empty-state" id="historyEmptyState" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+        <p>Noch keine Aufnahmen vorhanden.<br />Starte deine erste Aufnahme im Tab „Aufnahme“.</p>
+      </div>
+    </section>
+
+    <!-- ---------- SETTINGS VIEW ---------- -->
+    <section class="view" id="view-settings" data-view="settings" aria-labelledby="settingsTitle">
+      <div>
+        <h1 class="page-title" id="settingsTitle">Einstellungen</h1>
+        <p class="page-subtitle">Verbindung zu n8n, Spracheinstellungen und App-Verhalten.</p>
+      </div>
+
+      <div class="settings-section">
+        <h2>n8n-Webhook</h2>
+        <div class="field-group">
+          <label for="webhookInput">Webhook-URL</label>
+          <input type="url" class="field-input" id="webhookInput" placeholder="https://dein-n8n-server.tld/webhook/echosync" data-testid="input-webhook-url" />
+          <p class="field-hint">Jede Aufnahme wird als Formulardaten (Titel, Zeitstempel, Dauer, Transkript, Audiodatei) per POST an diese URL gesendet, sobald eine Internetverbindung besteht.</p>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="testWebhookBtn" data-testid="button-test-webhook">Verbindung testen</button>
+          <button class="btn btn-primary" id="saveWebhookBtn" data-testid="button-save-webhook">Speichern</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Transkription</h2>
+        <div class="field-group">
+          <label for="langSelect">Sprache der Spracherkennung</label>
+          <select class="field-select" id="langSelect" data-testid="select-language">
+            <option value="de-DE">Deutsch (Deutschland)</option>
+            <option value="de-AT">Deutsch (Österreich)</option>
+            <option value="de-CH">Deutsch (Schweiz)</option>
+            <option value="en-US">Englisch (USA)</option>
+            <option value="en-GB">Englisch (UK)</option>
+          </select>
+          <p class="field-hint">Live-Transkription läuft im Browser (Web Speech API) und benötigt in den meisten Browsern eine aktive Internetverbindung. Am zuverlässigsten in Chrome/Edge auf Android und Desktop. Ohne Unterstützung wird trotzdem die Audiospur gespeichert.</p>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Warteschlange</h2>
+        <div class="settings-row">
+          <span>Ausstehende Aufnahmen</span>
+          <span class="val" id="pendingCountVal">0</span>
+        </div>
+        <div class="settings-row">
+          <span>Verbindungsstatus</span>
+          <span class="val" id="connStatusVal">Online</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="settingsSyncBtn" data-testid="button-settings-sync">Jetzt synchronisieren</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Daten</h2>
+        <p class="about-text">Alle Aufnahmen werden ausschließlich lokal auf diesem Gerät gespeichert (IndexedDB), bis sie erfolgreich an n8n übermittelt wurden.</p>
+        <button class="btn btn-danger" id="clearDataBtn" data-testid="button-clear-data">Alle lokalen Daten löschen</button>
+      </div>
+
+      <div class="settings-section">
+        <h2>Über EchoSync</h2>
+        <p class="about-text">EchoSync ist eine installierbare Web-App (PWA). Füge sie über das Browser-Menü „Zum Startbildschirm hinzufügen“ deinem Homescreen hinzu, um sie wie eine native App zu nutzen. Version 1.0.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============ TOASTS ============ -->
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="bottom-nav" aria-label="Hauptnavigation">
+    <button class="nav-btn is-active" data-nav="recorder" data-testid="nav-recorder">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
+      Aufnahme
+    </button>
+    <button class="nav-btn" data-nav="history" data-testid="nav-history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+      Verlauf
+      <span class="nav-badge" id="navHistoryBadge" hidden>0</span>
+    </button>
+    <button class="nav-btn" data-nav="settings" data-testid="nav-settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Einstellungen
+    </button>
+  </nav>
+
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
+</content>
+</invoke>

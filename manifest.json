@@ -1,0 +1,20 @@
+{
+  "name": "EchoSync — Gespräche aufnehmen & transkribieren",
+  "short_name": "EchoSync",
+  "description": "Zeichnet Gespräche auf, transkribiert sie live im Browser und übermittelt sie automatisch an n8n — auch nach einer Offline-Phase.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#131110",
+  "theme_color": "#131110",
+  "lang": "de",
+  "dir": "ltr",
+  "icons": [
+    { "src": "./assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
+</content>
+</invoke>
