@@ -310,7 +310,7 @@ a.sr-only:focus-visible {
 .page-subtitle {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
-  margin-top: calc(-1 * var(--space-4));
+  margin-top: var(--space-2);
 }
 
 /* ============ RECORDER VIEW ============ */
@@ -698,6 +698,9 @@ a.sr-only:focus-visible {
   align-items: center;
   gap: var(--space-3);
 }
+[hidden] {
+  display: none !important;
+}
 .empty-state svg {
   width: 40px;
   height: 40px;
@@ -867,5 +870,3 @@ a.sr-only:focus-visible {
   .app-main { padding: var(--space-8) var(--space-8) var(--space-24); }
   .app-header { padding: var(--space-4) var(--space-8); }
 }
-</content>
-</invoke>

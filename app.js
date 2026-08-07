@@ -789,5 +789,3 @@ async function init() {
 }
 
 init();
-</content>
-</invoke>
