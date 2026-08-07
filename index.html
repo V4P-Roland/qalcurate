@@ -28,7 +28,7 @@
 </head>
 <body>
 
-<a class="sr-only" href="#mainContent">Zum Inhalt springen</a>
+<a class="sr-only" href="#mainContent" data-i18n="skipLink">Zum Inhalt springen</a>
 
 <div class="app-shell">
 
@@ -47,10 +47,10 @@
     <div class="header-actions">
       <span class="status-chip" id="statusChip" data-state="online">
         <span class="status-dot"></span>
-        <span id="statusChipLabel">Online</span>
+        <span id="statusChipLabel" data-i18n="statusOnline">Online</span>
       </span>
-      <button class="icon-btn" id="themeToggle" data-theme-toggle aria-label="Zu dunklem Modus wechseln">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <button class="icon-btn lang-toggle-btn" id="uiLangToggle" aria-label="Auf Englisch wechseln" data-testid="button-lang-toggle">
+        <span id="uiLangCode">DE</span>
       </button>
     </div>
   </header>
@@ -59,15 +59,15 @@
   <div class="side-menu-backdrop" id="sideMenuBackdrop" hidden></div>
   <aside class="side-menu" id="sideMenu" aria-hidden="true" aria-label="Funktionsmenü">
     <div class="side-menu-header">
-      <span class="side-menu-title">Funktionen</span>
-      <button class="icon-btn" id="sideMenuClose" aria-label="Menü schließen" data-testid="button-close-menu">
+      <span class="side-menu-title" data-i18n="sideMenuTitle">Funktionen</span>
+      <button class="icon-btn" id="sideMenuClose" aria-label="Menü schließen" data-i18n-aria-label="menuClose" data-testid="button-close-menu">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <nav class="side-menu-list" aria-label="Funktionsauswahl">
       <button class="side-menu-item is-active" data-module="transkript" data-testid="menu-item-transkript">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
-        Transkript
+        <span data-i18n="navTranscript">Transkript</span>
       </button>
       <button class="side-menu-item" data-module="voice-agent" data-testid="menu-item-voice-agent">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4v4a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
@@ -78,6 +78,14 @@
         Video Agent
       </button>
     </nav>
+    <div class="side-menu-footer">
+      <button class="side-menu-theme-btn" id="themeToggle" data-theme-toggle aria-label="Zu dunklem Modus wechseln" data-testid="button-theme-toggle">
+        <span class="side-menu-theme-icon" id="themeToggleIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </span>
+        <span id="themeToggleLabel" data-i18n="themeToDark">Dunkler Modus</span>
+      </button>
+    </div>
   </aside>
 
   <!-- ============ MAIN ============ -->
@@ -86,28 +94,37 @@
     <!-- ---------- RECORDER VIEW ---------- -->
     <section class="view is-active" id="view-recorder" data-view="recorder" aria-labelledby="recorderTitle">
       <div>
-        <h1 class="page-title" id="recorderTitle">Aufnahme</h1>
-        <p class="page-subtitle">Zeichne ein Gespräch auf — bei fehlender Verbindung wird es lokal gespeichert und automatisch übermittelt, sobald du wieder online bist und ein Webhook konfiguriert wurde.</p>
+        <h1 class="page-title" id="recorderTitle" data-i18n="recorderTitle">Aufnahme</h1>
+        <p class="page-subtitle" data-i18n="recorderSubtitle">Zeichne ein Gespräch auf — bei fehlender Verbindung wird es lokal gespeichert und automatisch übermittelt, sobald du wieder online bist und ein Webhook konfiguriert wurde.</p>
       </div>
 
       <div class="banner" id="asrBanner" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86l-8.18 14.18A1.5 1.5 0 0 0 3.34 20h17.32a1.5 1.5 0 0 0 1.23-2.36L13.71 3.86a1.5 1.5 0 0 0-2.42 0z"/></svg>
-        <span id="asrBannerText">Live-Transkription wird von diesem Browser nicht unterstützt. Die Audioaufnahme funktioniert trotzdem — installiere die App am besten in Chrome oder Edge für Live-Transkription.</span>
+        <span id="asrBannerText" data-i18n="asrNotSupported">Live-Transkription wird von diesem Browser nicht unterstützt. Die Audioaufnahme funktioniert trotzdem — installiere die App am besten in Chrome oder Edge für Live-Transkription.</span>
       </div>
 
       <div class="recorder-card" data-recording="false" id="recorderCard">
         <div class="title-input-row">
-          <label for="titleInput">Titel der Aufnahme</label>
-          <input type="text" class="title-input" id="titleInput" placeholder="z. B. Kundengespräch Müller" data-testid="input-recording-title" />
+          <label for="titleInput" data-i18n="titleInputLabel">Titel der Aufnahme</label>
+          <input type="text" class="title-input" id="titleInput" placeholder="z. B. Kundengespräch Müller" data-i18n-placeholder="titleInputPlaceholder" data-testid="input-recording-title" />
         </div>
 
         <div class="waveform-wrap">
           <canvas id="waveform" width="600" height="96"></canvas>
-          <span class="waveform-idle-label" id="waveformIdleLabel">Bereit zur Aufnahme</span>
+          <div class="waveform-idle-label" id="waveformIdleLabel">
+            <span class="idle-caption" data-i18n="recognitionLangLabel">Sprache der Spracherkennung</span>
+            <select class="lang-mini-select" id="langSelect" data-testid="select-language">
+              <option value="de-DE">Deutsch (Deutschland)</option>
+              <option value="de-AT">Deutsch (Österreich)</option>
+              <option value="de-CH">Deutsch (Schweiz)</option>
+              <option value="en-US">Englisch (USA)</option>
+              <option value="en-GB">Englisch (UK)</option>
+            </select>
+          </div>
         </div>
 
         <div class="timer-row">
-          <span class="rec-indicator"><span class="rec-dot"></span>Aufnahme läuft</span>
+          <span class="rec-indicator"><span class="rec-dot"></span><span data-i18n="recIndicator">Aufnahme läuft</span></span>
           <span class="timer" id="timer" data-testid="text-timer">00:00</span>
         </div>
 
@@ -117,12 +134,12 @@
             <svg class="record-btn-icon-stop" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
           </button>
         </div>
-        <p class="record-hint" id="recordHint">Tippen, um die Aufnahme zu starten</p>
+        <p class="record-hint" id="recordHint" data-i18n="recordHintStart">Tippen, um die Aufnahme zu starten</p>
 
         <div class="transcript-panel">
           <div class="transcript-label">
-            <span>Transkript</span>
-            <span class="asr-support-badge" id="asrSupportBadge" hidden>nicht verfügbar</span>
+            <span data-i18n="transcriptLabel">Transkript</span>
+            <span class="asr-support-badge" id="asrSupportBadge" hidden data-i18n="asrBadgeUnavailable">nicht verfügbar</span>
           </div>
           <div class="transcript-box" id="transcriptBox" data-placeholder="Das Transkript erscheint hier während der Aufnahme…" data-empty="true" data-testid="text-transcript" tabindex="0"></div>
         </div>
@@ -132,14 +149,14 @@
     <!-- ---------- HISTORY VIEW ---------- -->
     <section class="view" id="view-history" data-view="history" aria-labelledby="historyTitle">
       <div>
-        <h1 class="page-title" id="historyTitle">Verlauf</h1>
-        <p class="page-subtitle">Alle Aufnahmen mit Übermittlungsstatus.</p>
+        <h1 class="page-title" id="historyTitle" data-i18n="historyTitle">Verlauf</h1>
+        <p class="page-subtitle" data-i18n="historySubtitle">Alle Aufnahmen mit Übermittlungsstatus.</p>
       </div>
 
       <div class="history-toolbar">
         <button class="pill-btn is-danger" id="deleteAllBtn" data-testid="button-delete-all">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/><path d="M10 11v6M14 11v6"/></svg>
-          <span id="deleteAllLabel">Alle löschen</span>
+          <span id="deleteAllLabel" data-i18n="deleteAll">Alle löschen</span>
         </button>
         <span class="status-chip" data-state="offline" id="pendingChip" hidden>
           <span class="status-dot"></span>
@@ -151,60 +168,45 @@
 
       <div class="empty-state" id="historyEmptyState" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
-        <p>Noch keine Aufnahmen vorhanden.<br />Starte deine erste Aufnahme im Tab „Aufnahme“.</p>
+        <p data-i18n-html="historyEmpty">Noch keine Aufnahmen vorhanden.<br />Starte deine erste Aufnahme im Tab „Aufnahme“.</p>
       </div>
     </section>
 
     <!-- ---------- SETTINGS VIEW ---------- -->
     <section class="view" id="view-settings" data-view="settings" aria-labelledby="settingsTitle">
       <div>
-        <h1 class="page-title" id="settingsTitle">Einstellungen</h1>
-        <p class="page-subtitle">Verbindung zum Webhook, Spracheinstellungen und App-Verhalten.</p>
+        <h1 class="page-title" id="settingsTitle" data-i18n="settingsTitle">Einstellungen</h1>
+        <p class="page-subtitle" data-i18n="settingsSubtitle">Verbindung zum Webhook und App-Verhalten.</p>
       </div>
 
       <div class="settings-section">
-        <h2>Webhook</h2>
+        <h2 data-i18n="webhookHeading">Webhook</h2>
         <div class="field-group">
-          <label for="webhookInput">Webhook-URL</label>
-          <input type="url" class="field-input" id="webhookInput" placeholder="https://dein-server.tld/webhook/qalcurate" data-testid="input-webhook-url" />
-          <p class="field-hint">Jede Aufnahme wird als Formulardaten (Titel, Zeitstempel, Dauer, Transkript, Audiodatei) per POST an diese URL gesendet, sobald eine Internetverbindung besteht.</p>
+          <label for="webhookInput" data-i18n="webhookUrlLabel">Webhook-URL</label>
+          <input type="url" class="field-input" id="webhookInput" placeholder="https://dein-server.tld/webhook/qalcurate" data-i18n-placeholder="webhookUrlPlaceholder" data-testid="input-webhook-url" />
+          <p class="field-hint" data-i18n="webhookHint">Jede Aufnahme wird als Formulardaten (Titel, Zeitstempel, Dauer, Transkript, Audiodatei) per POST an diese URL gesendet, sobald eine Internetverbindung besteht.</p>
         </div>
         <div class="btn-row">
-          <button class="btn btn-secondary" id="testWebhookBtn" data-testid="button-test-webhook">Verbindung testen</button>
-          <button class="btn btn-primary" id="saveWebhookBtn" data-testid="button-save-webhook">Speichern</button>
+          <button class="btn btn-secondary" id="testWebhookBtn" data-i18n="testConnection" data-testid="button-test-webhook">Verbindung testen</button>
+          <button class="btn btn-primary" id="saveWebhookBtn" data-i18n="save" data-testid="button-save-webhook">Speichern</button>
         </div>
       </div>
 
       <div class="settings-section">
-        <h2>Transkription</h2>
-        <div class="field-group">
-          <label for="langSelect">Sprache der Spracherkennung</label>
-          <select class="field-select" id="langSelect" data-testid="select-language">
-            <option value="de-DE">Deutsch (Deutschland)</option>
-            <option value="de-AT">Deutsch (Österreich)</option>
-            <option value="de-CH">Deutsch (Schweiz)</option>
-            <option value="en-US">Englisch (USA)</option>
-            <option value="en-GB">Englisch (UK)</option>
-          </select>
-          <p class="field-hint">Live-Transkription läuft im Browser (Web Speech API) und benötigt in den meisten Browsern eine aktive Internetverbindung. Am zuverlässigsten in Chrome/Edge auf Android und Desktop. Ohne Unterstützung wird trotzdem die Audiospur gespeichert.</p>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h2>Warteschlange</h2>
+        <h2 data-i18n="queueHeading">Warteschlange</h2>
         <div class="settings-row">
-          <span>Ausstehende Aufnahmen</span>
+          <span data-i18n="pendingRecordings">Ausstehende Aufnahmen</span>
           <span class="val" id="pendingCountVal">0</span>
         </div>
         <div class="settings-row">
-          <span>Verbindungsstatus</span>
+          <span data-i18n="connectionStatus">Verbindungsstatus</span>
           <span class="val" id="connStatusVal">Online</span>
         </div>
       </div>
 
       <div class="settings-section">
-        <h2>Über Qalcurate</h2>
-        <p class="about-text">Qalcurate ist eine installierbare Web-App (PWA). Füge sie über das Browser-Menü „Zum Startbildschirm hinzufügen“ deinem Homescreen hinzu, um sie wie eine native App zu nutzen. Version 1.0.</p>
+        <h2 data-i18n="aboutHeading">Über Qalcurate</h2>
+        <p class="about-text" data-i18n="aboutText">Qalcurate ist eine installierbare Web-App (PWA). Füge sie über das Browser-Menü „Zum Startbildschirm hinzufügen“ deinem Homescreen hinzu, um sie wie eine native App zu nutzen. Version 1.0.</p>
       </div>
     </section>
 
@@ -212,11 +214,11 @@
     <section class="view" id="view-voice-agent" data-view="voice-agent" aria-labelledby="voiceAgentTitle">
       <div>
         <h1 class="page-title" id="voiceAgentTitle">Voice Agent</h1>
-        <p class="page-subtitle">Diese Funktion ist in Vorbereitung.</p>
+        <p class="page-subtitle" data-i18n="agentComingSoonSubtitle">Diese Funktion ist in Vorbereitung.</p>
       </div>
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2a4 4 0 0 0-4 4v4a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>
-        <p>Voice Agent ist bald verfügbar.</p>
+        <p data-i18n="voiceAgentEmpty">Voice Agent ist bald verfügbar.</p>
       </div>
     </section>
 
@@ -224,11 +226,11 @@
     <section class="view" id="view-video-agent" data-view="video-agent" aria-labelledby="videoAgentTitle">
       <div>
         <h1 class="page-title" id="videoAgentTitle">Video Agent</h1>
-        <p class="page-subtitle">Diese Funktion ist in Vorbereitung.</p>
+        <p class="page-subtitle" data-i18n="agentComingSoonSubtitle">Diese Funktion ist in Vorbereitung.</p>
       </div>
       <div class="empty-state">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-        <p>Video Agent ist bald verfügbar.</p>
+        <p data-i18n="videoAgentEmpty">Video Agent ist bald verfügbar.</p>
       </div>
     </section>
 
@@ -241,16 +243,16 @@
   <nav class="bottom-nav" aria-label="Hauptnavigation">
     <button class="nav-btn is-active" data-nav="recorder" data-testid="nav-recorder">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8"/></svg>
-      Aufnahme
+      <span data-i18n="navRecorder">Aufnahme</span>
     </button>
     <button class="nav-btn" data-nav="history" data-testid="nav-history">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
-      Verlauf
+      <span data-i18n="navHistory">Verlauf</span>
       <span class="nav-badge" id="navHistoryBadge" hidden>0</span>
     </button>
     <button class="nav-btn" data-nav="settings" data-testid="nav-settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Einstellungen
+      <span data-i18n="navSettings">Einstellungen</span>
     </button>
   </nav>
 

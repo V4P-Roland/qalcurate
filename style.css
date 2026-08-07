@@ -303,6 +303,13 @@ a.sr-only:focus-visible {
   height: 20px;
 }
 
+.lang-toggle-btn {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  letter-spacing: 0.02em;
+}
+
 /* ============ SIDE MENU ============ */
 .side-menu-backdrop {
   position: fixed;
@@ -373,6 +380,36 @@ a.sr-only:focus-visible {
 .side-menu-item.is-active {
   background: var(--color-primary-highlight);
   color: var(--color-primary);
+}
+
+.side-menu-footer {
+  margin-top: auto;
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-divider);
+}
+.side-menu-theme-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  text-align: left;
+  width: 100%;
+}
+.side-menu-theme-btn:hover {
+  background: var(--color-surface-offset);
+  color: var(--color-text);
+}
+.side-menu-theme-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.side-menu-theme-icon svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* ============ RECORDING FOCUS MODE ============ */
@@ -513,9 +550,30 @@ a.sr-only:focus-visible {
 }
 .waveform-idle-label {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+.waveform-idle-label .idle-caption {
   font-size: var(--text-xs);
   color: var(--color-text-faint);
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.lang-mini-select {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+}
+.lang-mini-select:focus-visible {
+  border-color: var(--color-primary);
 }
 
 .timer-row {

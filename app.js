@@ -48,30 +48,277 @@ const els = {
   pendingCountVal: $('#pendingCountVal'),
   connStatusVal: $('#connStatusVal'),
 
+  uiLangToggle: $('#uiLangToggle'),
+  uiLangCode: $('#uiLangCode'),
+  themeToggleIcon: $('#themeToggleIcon'),
+  themeToggleLabel: $('#themeToggleLabel'),
+
   toastStack: $('#toastStack'),
 };
 
-/* ---------------- Theme ---------------- */
-(function initTheme() {
-  const root = document.documentElement;
-  let theme = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
-  root.setAttribute('data-theme', theme);
-  applyThemeIcon(theme);
+/* ==========================================================================
+   Interface language (i18n) — independent from the speech-recognition
+   language stored under the 'language' setting key.
+   ========================================================================== */
+const I18N = {
+  de: {
+    skipLink: 'Zum Inhalt springen',
+    menuOpen: 'Menü öffnen',
+    menuClose: 'Menü schließen',
+    sideMenuTitle: 'Funktionen',
+    navTranscript: 'Transkript',
+    statusOnline: 'Online',
+    statusOffline: 'Offline',
+    statusSyncing: 'Synchronisiere…',
+    themeToDark: 'Dunkler Modus',
+    themeToLight: 'Heller Modus',
+    themeToggleAriaDark: 'Zu dunklem Modus wechseln',
+    themeToggleAriaLight: 'Zu hellem Modus wechseln',
+    langToggleAriaToEn: 'Auf Englisch wechseln',
+    langToggleAriaToDe: 'Auf Deutsch wechseln',
+    recorderTitle: 'Aufnahme',
+    recorderSubtitle: 'Zeichne ein Gespräch auf — bei fehlender Verbindung wird es lokal gespeichert und automatisch übermittelt, sobald du wieder online bist und ein Webhook konfiguriert wurde.',
+    asrNotSupported: 'Live-Transkription wird von diesem Browser nicht unterstützt. Die Audioaufnahme funktioniert trotzdem — installiere die App am besten in Chrome oder Edge für Live-Transkription.',
+    asrNetworkIssue: 'Transkription momentan nicht verfügbar (keine Verbindung). Die Audioaufnahme läuft weiter und wird gespeichert.',
+    asrDenied: 'Zugriff auf die Spracherkennung wurde verweigert. Die Audioaufnahme läuft weiter.',
+    asrBadgeUnavailable: 'nicht verfügbar',
+    titleInputLabel: 'Titel der Aufnahme',
+    titleInputPlaceholder: 'z. B. Kundengespräch Müller',
+    recognitionLangLabel: 'Sprache der Spracherkennung',
+    recIndicator: 'Aufnahme läuft',
+    recordStartAria: 'Aufnahme starten',
+    recordStopAria: 'Aufnahme beenden',
+    recordHintStart: 'Tippen, um die Aufnahme zu starten',
+    recordHintStop: 'Tippen, um die Aufnahme zu beenden',
+    transcriptLabel: 'Transkript',
+    transcriptPlaceholder: 'Das Transkript erscheint hier während der Aufnahme…',
+    historyTitle: 'Verlauf',
+    historySubtitle: 'Alle Aufnahmen mit Übermittlungsstatus.',
+    deleteAll: 'Alle löschen',
+    deleteAllConfirm: 'Wirklich alle löschen?',
+    pendingCount: (n) => `${n} ausstehend`,
+    historyEmpty: 'Noch keine Aufnahmen vorhanden.<br />Starte deine erste Aufnahme im Tab „Aufnahme“.',
+    noTranscriptPreview: 'Kein Transkript verfügbar — Audio wurde trotzdem gespeichert.',
+    noTranscriptFull: 'Kein Transkript verfügbar.',
+    statusSynced: 'Gesendet',
+    statusError: 'Fehler',
+    statusPending: 'Ausstehend',
+    lastError: (msg) => `Letzter Fehler: ${msg}`,
+    resend: 'Erneut senden',
+    resendSending: 'Sende…',
+    delete: 'Löschen',
+    deleteConfirm: 'Wirklich löschen?',
+    settingsTitle: 'Einstellungen',
+    settingsSubtitle: 'Verbindung zum Webhook und App-Verhalten.',
+    webhookHeading: 'Webhook',
+    webhookUrlLabel: 'Webhook-URL',
+    webhookUrlPlaceholder: 'https://dein-server.tld/webhook/qalcurate',
+    webhookHint: 'Jede Aufnahme wird als Formulardaten (Titel, Zeitstempel, Dauer, Transkript, Audiodatei) per POST an diese URL gesendet, sobald eine Internetverbindung besteht.',
+    testConnection: 'Verbindung testen',
+    testing: 'Teste…',
+    save: 'Speichern',
+    queueHeading: 'Warteschlange',
+    pendingRecordings: 'Ausstehende Aufnahmen',
+    connectionStatus: 'Verbindungsstatus',
+    aboutHeading: 'Über Qalcurate',
+    aboutText: 'Qalcurate ist eine installierbare Web-App (PWA). Füge sie über das Browser-Menü „Zum Startbildschirm hinzufügen“ deinem Homescreen hinzu, um sie wie eine native App zu nutzen. Version 1.0.',
+    agentComingSoonSubtitle: 'Diese Funktion ist in Vorbereitung.',
+    voiceAgentEmpty: 'Voice Agent ist bald verfügbar.',
+    videoAgentEmpty: 'Video Agent ist bald verfügbar.',
+    navRecorder: 'Aufnahme',
+    navHistory: 'Verlauf',
+    navSettings: 'Einstellungen',
+    toastNoWebhook: 'Bitte zuerst eine Webhook-URL in den Einstellungen speichern.',
+    toastSyncedCount: (n) => `${n} Aufnahme(n) übermittelt.`,
+    toastSyncFailedRetry: 'Übermittlung fehlgeschlagen. Wird später erneut versucht.',
+    toastMicDenied: 'Mikrofonzugriff wurde verweigert oder ist nicht verfügbar.',
+    toastRecorderUnsupported: 'Aufnahme wird von diesem Browser nicht unterstützt.',
+    toastEmptyDiscarded: 'Aufnahme war leer und wurde verworfen.',
+    toastSaved: 'Aufnahme gespeichert.',
+    toastSavedNoTranscript: 'Aufnahme gespeichert (ohne Transkript).',
+    toastOfflineCannotSend: 'Keine Verbindung — Übermittlung kann nicht gestartet werden.',
+    toastResendOk: 'Übermittlung erfolgreich.',
+    toastResendFail: 'Übermittlung fehlgeschlagen.',
+    toastDeleted: 'Aufnahme gelöscht.',
+    toastAllDeleted: 'Alle Aufnahmen wurden gelöscht.',
+    toastWebhookSaved: 'Webhook-URL gespeichert.',
+    toastWebhookRemoved: 'Webhook-URL entfernt.',
+    toastEnterUrlFirst: 'Bitte zuerst eine URL eingeben.',
+    toastTestOk: 'Verbindung erfolgreich — das Zielsystem hat geantwortet.',
+    toastTestHttpError: (status) => `Das Zielsystem antwortete mit Fehler: HTTP ${status}`,
+    toastTestFailed: (msg) => `Verbindung fehlgeschlagen: ${msg}`,
+    toastNoStorage: 'Lokaler Speicher (IndexedDB) ist in dieser Umgebung nicht verfügbar.',
+    toastLangSaved: 'Sprache gespeichert.',
+    testWebhookTitle: 'Qalcurate Verbindungstest',
+    testWebhookTranscript: 'Dies ist eine Testübermittlung von Qalcurate.',
+    defaultTitlePrefix: 'Gespräch vom ',
+    networkErrorFallback: 'Netzwerkfehler',
+    unknownError: 'Unbekannter Fehler',
+    dateLocale: 'de-DE',
+  },
+  en: {
+    skipLink: 'Skip to content',
+    menuOpen: 'Open menu',
+    menuClose: 'Close menu',
+    sideMenuTitle: 'Features',
+    navTranscript: 'Transcript',
+    statusOnline: 'Online',
+    statusOffline: 'Offline',
+    statusSyncing: 'Syncing…',
+    themeToDark: 'Dark mode',
+    themeToLight: 'Light mode',
+    themeToggleAriaDark: 'Switch to dark mode',
+    themeToggleAriaLight: 'Switch to light mode',
+    langToggleAriaToEn: 'Switch to English',
+    langToggleAriaToDe: 'Switch to German',
+    recorderTitle: 'Recording',
+    recorderSubtitle: 'Record a conversation — if you lose connection it is saved locally and sent automatically once you are back online and a webhook is configured.',
+    asrNotSupported: 'Live transcription is not supported by this browser. Audio recording still works — for live transcription, install the app in Chrome or Edge.',
+    asrNetworkIssue: 'Transcription is temporarily unavailable (no connection). The audio recording keeps running and will be saved.',
+    asrDenied: 'Access to speech recognition was denied. The audio recording keeps running.',
+    asrBadgeUnavailable: 'unavailable',
+    titleInputLabel: 'Recording title',
+    titleInputPlaceholder: 'e.g. Client call Smith',
+    recognitionLangLabel: 'Speech recognition language',
+    recIndicator: 'Recording',
+    recordStartAria: 'Start recording',
+    recordStopAria: 'Stop recording',
+    recordHintStart: 'Tap to start recording',
+    recordHintStop: 'Tap to stop recording',
+    transcriptLabel: 'Transcript',
+    transcriptPlaceholder: 'The transcript appears here while recording…',
+    historyTitle: 'History',
+    historySubtitle: 'All recordings with delivery status.',
+    deleteAll: 'Delete all',
+    deleteAllConfirm: 'Really delete all?',
+    pendingCount: (n) => `${n} pending`,
+    historyEmpty: 'No recordings yet.<br />Start your first recording on the “Recording” tab.',
+    noTranscriptPreview: 'No transcript available — the audio was saved anyway.',
+    noTranscriptFull: 'No transcript available.',
+    statusSynced: 'Sent',
+    statusError: 'Error',
+    statusPending: 'Pending',
+    lastError: (msg) => `Last error: ${msg}`,
+    resend: 'Resend',
+    resendSending: 'Sending…',
+    delete: 'Delete',
+    deleteConfirm: 'Really delete?',
+    settingsTitle: 'Settings',
+    settingsSubtitle: 'Webhook connection and app behavior.',
+    webhookHeading: 'Webhook',
+    webhookUrlLabel: 'Webhook URL',
+    webhookUrlPlaceholder: 'https://your-server.tld/webhook/qalcurate',
+    webhookHint: 'Every recording is sent as form data (title, timestamp, duration, transcript, audio file) via POST to this URL as soon as an internet connection is available.',
+    testConnection: 'Test connection',
+    testing: 'Testing…',
+    save: 'Save',
+    queueHeading: 'Queue',
+    pendingRecordings: 'Pending recordings',
+    connectionStatus: 'Connection status',
+    aboutHeading: 'About Qalcurate',
+    aboutText: 'Qalcurate is an installable web app (PWA). Add it to your home screen via the browser menu “Add to home screen” to use it like a native app. Version 1.0.',
+    agentComingSoonSubtitle: 'This feature is coming soon.',
+    voiceAgentEmpty: 'Voice Agent will be available soon.',
+    videoAgentEmpty: 'Video Agent will be available soon.',
+    navRecorder: 'Recording',
+    navHistory: 'History',
+    navSettings: 'Settings',
+    toastNoWebhook: 'Please save a webhook URL in settings first.',
+    toastSyncedCount: (n) => `${n} recording(s) delivered.`,
+    toastSyncFailedRetry: 'Delivery failed. It will be retried later.',
+    toastMicDenied: 'Microphone access was denied or is unavailable.',
+    toastRecorderUnsupported: 'Recording is not supported by this browser.',
+    toastEmptyDiscarded: 'The recording was empty and was discarded.',
+    toastSaved: 'Recording saved.',
+    toastSavedNoTranscript: 'Recording saved (without transcript).',
+    toastOfflineCannotSend: 'No connection — delivery cannot be started.',
+    toastResendOk: 'Delivery successful.',
+    toastResendFail: 'Delivery failed.',
+    toastDeleted: 'Recording deleted.',
+    toastAllDeleted: 'All recordings were deleted.',
+    toastWebhookSaved: 'Webhook URL saved.',
+    toastWebhookRemoved: 'Webhook URL removed.',
+    toastEnterUrlFirst: 'Please enter a URL first.',
+    toastTestOk: 'Connection successful — the target system responded.',
+    toastTestHttpError: (status) => `The target system responded with an error: HTTP ${status}`,
+    toastTestFailed: (msg) => `Connection failed: ${msg}`,
+    toastNoStorage: 'Local storage (IndexedDB) is not available in this environment.',
+    toastLangSaved: 'Language saved.',
+    testWebhookTitle: 'Qalcurate connection test',
+    testWebhookTranscript: 'This is a test submission from Qalcurate.',
+    defaultTitlePrefix: 'Conversation from ',
+    networkErrorFallback: 'Network error',
+    unknownError: 'Unknown error',
+    dateLocale: 'en-US',
+  },
+};
 
-  els.themeToggle.addEventListener('click', () => {
-    theme = theme === 'dark' ? 'light' : 'dark';
-    root.setAttribute('data-theme', theme);
-    applyThemeIcon(theme);
+let currentUiLang = 'de';
+function t(key, ...args) {
+  const dict = I18N[currentUiLang] || I18N.de;
+  const val = dict[key] ?? I18N.de[key] ?? key;
+  return typeof val === 'function' ? val(...args) : val;
+}
+
+let currentAsrBannerKey = null;
+let lastConnState = 'online';
+
+function updateRecordUIStrings() {
+  els.recordBtn.setAttribute('aria-label', isRecording ? t('recordStopAria') : t('recordStartAria'));
+  els.recordHint.textContent = isRecording ? t('recordHintStop') : t('recordHintStart');
+}
+
+function applyTranslations() {
+  document.documentElement.lang = currentUiLang;
+  els.uiLangCode.textContent = currentUiLang === 'de' ? 'EN' : 'DE';
+  els.uiLangToggle.setAttribute('aria-label', currentUiLang === 'de' ? t('langToggleAriaToEn') : t('langToggleAriaToDe'));
+
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+    el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
   });
 
-  function applyThemeIcon(t) {
-    els.themeToggle.setAttribute('aria-label', 'Zu ' + (t === 'dark' ? 'hellem' : 'dunklem') + ' Modus wechseln');
-    els.themeToggle.innerHTML =
-      t === 'dark'
-        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
-        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-  }
-})();
+  els.transcriptBox.dataset.placeholder = t('transcriptPlaceholder');
+  els.menuToggle.setAttribute('aria-label', els.sideMenu.classList.contains('is-open') ? t('menuClose') : t('menuOpen'));
+  applyThemeIcon(currentTheme);
+  setConnState(lastConnState);
+  updateRecordUIStrings();
+  if (currentAsrBannerKey) els.asrBannerText.textContent = t(currentAsrBannerKey);
+  updatePendingUI();
+  renderHistory();
+}
+
+els.uiLangToggle.addEventListener('click', async () => {
+  currentUiLang = currentUiLang === 'de' ? 'en' : 'de';
+  applyTranslations();
+  await dbSetSetting('uiLang', currentUiLang);
+});
+
+/* ---------------- Theme ---------------- */
+let currentTheme = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+function applyThemeIcon(mode) {
+  els.themeToggle.setAttribute('aria-label', mode === 'dark' ? t('themeToggleAriaLight') : t('themeToggleAriaDark'));
+  els.themeToggleLabel.textContent = mode === 'dark' ? t('themeToLight') : t('themeToDark');
+  els.themeToggleIcon.innerHTML =
+    mode === 'dark'
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+}
+document.documentElement.setAttribute('data-theme', currentTheme);
+applyThemeIcon(currentTheme);
+els.themeToggle.addEventListener('click', () => {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  applyThemeIcon(currentTheme);
+});
 
 /* ---------------- Navigation ---------------- */
 const TRANSKRIPT_VIEWS = ['recorder', 'history', 'settings'];
@@ -112,12 +359,14 @@ function openSideMenu() {
   els.sideMenu.setAttribute('aria-hidden', 'false');
   els.sideMenuBackdrop.hidden = false;
   els.menuToggle.setAttribute('aria-expanded', 'true');
+  els.menuToggle.setAttribute('aria-label', t('menuClose'));
 }
 function closeSideMenu() {
   els.sideMenu.classList.remove('is-open');
   els.sideMenu.setAttribute('aria-hidden', 'true');
   els.sideMenuBackdrop.hidden = true;
   els.menuToggle.setAttribute('aria-expanded', 'false');
+  els.menuToggle.setAttribute('aria-label', t('menuOpen'));
 }
 els.menuToggle.addEventListener('click', () => {
   if (els.sideMenu.classList.contains('is-open')) closeSideMenu();
@@ -151,7 +400,7 @@ function formatDuration(sec) {
 }
 function formatDateTime(iso) {
   try {
-    return new Date(iso).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' });
+    return new Date(iso).toLocaleString(t('dateLocale'), { dateStyle: 'medium', timeStyle: 'short' });
   } catch (e) {
     return iso;
   }
@@ -163,7 +412,7 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;');
 }
 function defaultTitle() {
-  return 'Gespräch vom ' + new Date().toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' });
+  return t('defaultTitlePrefix') + new Date().toLocaleString(t('dateLocale'), { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 /* ==========================================================================
@@ -203,6 +452,15 @@ async function dbGetAllRecordings() {
     const tx = db.transaction('recordings', 'readonly');
     const req = tx.objectStore('recordings').getAll();
     req.onsuccess = () => resolve(req.result || []);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function dbGetRecording(id) {
+  const db = await getDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('recordings', 'readonly');
+    const req = tx.objectStore('recordings').get(id);
+    req.onsuccess = () => resolve(req.result || null);
     req.onerror = () => reject(req.error);
   });
 }
@@ -258,9 +516,10 @@ async function dbSetSetting(key, value) {
 let currentLanguage = 'de-DE';
 
 function setConnState(state) {
+  lastConnState = state;
   els.statusChip.dataset.state = state;
   els.pendingChip.dataset.state = state === 'syncing' ? 'syncing' : state;
-  const label = state === 'online' ? 'Online' : state === 'syncing' ? 'Synchronisiere…' : 'Offline';
+  const label = state === 'online' ? t('statusOnline') : state === 'syncing' ? t('statusSyncing') : t('statusOffline');
   els.statusChipLabel.textContent = label;
   els.connStatusVal.textContent = label;
 }
@@ -274,7 +533,7 @@ async function updatePendingUI() {
     els.navHistoryBadge.hidden = false;
     els.navHistoryBadge.textContent = String(count);
     els.pendingChip.hidden = false;
-    els.pendingChipLabel.textContent = `${count} ausstehend`;
+    els.pendingChipLabel.textContent = t('pendingCount', count);
   } else {
     els.navHistoryBadge.hidden = true;
     els.pendingChip.hidden = true;
@@ -286,7 +545,7 @@ async function syncOne(rec, webhookUrlParam) {
   if (!navigator.onLine) return false;
   const webhookUrl = webhookUrlParam ?? (await dbGetSetting('webhookUrl', ''));
   if (!webhookUrl) {
-    showToast('Bitte zuerst eine Webhook-URL in den Einstellungen speichern.');
+    showToast(t('toastNoWebhook'));
     return false;
   }
   try {
@@ -311,10 +570,42 @@ async function syncOne(rec, webhookUrlParam) {
   } catch (err) {
     rec.attempts = (rec.attempts || 0) + 1;
     rec.status = 'error';
-    rec.lastError = (err && err.message) || 'Unbekannter Fehler';
+    rec.lastError = (err && err.message) || t('unknownError');
     await dbPutRecording(rec);
     return false;
   }
+}
+
+/* ---------------- Submission concurrency lock ----------------
+   A single submission for a given recording must never run twice
+   concurrently — not from two overlapping trySync() batches, not from
+   trySync() racing a manual "resend" click, and (best-effort) not across
+   browser tabs. The Web Locks API gives us a real cross-tab mutex when
+   available; a promise-chain fallback keeps at least intra-tab safety
+   everywhere else. This must be a SEPARATE lock from `syncInFlight`
+   (which guards the whole trySync() batch) — reusing that flag here would
+   deadlock, since trySync() already holds it for its entire loop. */
+let fallbackLockChain = Promise.resolve();
+function withSyncLock(fn) {
+  if (navigator.locks && navigator.locks.request) {
+    return navigator.locks.request('qalcurate-recording-sync', fn);
+  }
+  const run = fallbackLockChain.then(fn, fn);
+  fallbackLockChain = run.catch(() => {});
+  return run;
+}
+
+/** Submit exactly one recording, guarded so overlapping callers (trySync's
+ * batch loop, a manual resend click, another tab) can never both send the
+ * same recording at once. Always re-reads the freshest DB record inside the
+ * lock and no-ops if it was already marked synced by a previous holder. */
+function submitRecording(id, webhookUrlParam) {
+  return withSyncLock(async () => {
+    const fresh = await dbGetRecording(id);
+    if (!fresh) return false;
+    if (fresh.status === 'synced') return true; // already delivered by another caller
+    return syncOne(fresh, webhookUrlParam);
+  });
 }
 
 let syncInFlight = false;
@@ -336,16 +627,16 @@ async function trySync({ silent = true } = {}) {
     let okCount = 0;
     for (const rec of pending) {
       if (!navigator.onLine) break; // connection dropped mid-sync — stop immediately
-      const ok = await syncOne(rec, webhookUrl);
+      const ok = await submitRecording(rec.id, webhookUrl);
       if (ok) okCount++;
     }
     setConnState(navigator.onLine ? 'online' : 'offline');
     await updatePendingUI();
     await renderHistory();
     if (!silent && okCount > 0) {
-      showToast(`${okCount} Aufnahme(n) übermittelt.`);
+      showToast(t('toastSyncedCount', okCount));
     } else if (!silent && okCount === 0) {
-      showToast('Übermittlung fehlgeschlagen. Wird später erneut versucht.');
+      showToast(t('toastSyncFailedRetry'));
     }
   } finally {
     syncInFlight = false;
@@ -385,9 +676,10 @@ let acceptResults = false;
 let recognitionEnded = true;
 let flushResolve = null;
 
-function showAsrBanner(show, text) {
+function showAsrBanner(show, key) {
   els.asrBanner.hidden = !show;
-  if (text) els.asrBannerText.textContent = text;
+  currentAsrBannerKey = show ? key : null;
+  if (show && key) els.asrBannerText.textContent = t(key);
   els.asrSupportBadge.hidden = !show;
 }
 
@@ -424,10 +716,10 @@ function createAndStartRecognition() {
 
   recognition.onerror = (event) => {
     if (event.error === 'network') {
-      showAsrBanner(true, 'Transkription momentan nicht verfügbar (keine Verbindung). Die Audioaufnahme läuft weiter und wird gespeichert.');
+      showAsrBanner(true, 'asrNetworkIssue');
     } else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
       recognitionShouldRestart = false;
-      showAsrBanner(true, 'Zugriff auf die Spracherkennung wurde verweigert. Die Audioaufnahme läuft weiter.');
+      showAsrBanner(true, 'asrDenied');
     }
     // 'no-speech' / 'aborted' are non-fatal — handled via onend restart below.
   };
@@ -478,7 +770,7 @@ function waitForRecognitionFlush(timeoutMs = 700) {
 function startRecognition() {
   const SR = getSpeechRecognitionCtor();
   if (!SR) {
-    showAsrBanner(true, 'Live-Transkription wird von diesem Browser nicht unterstützt. Die Audioaufnahme funktioniert trotzdem — installiere die App am besten in Chrome oder Edge für Live-Transkription.');
+    showAsrBanner(true, 'asrNotSupported');
     return;
   }
   showAsrBanner(false);
@@ -574,7 +866,7 @@ async function startRecording() {
   try {
     mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
   } catch (err) {
-    showToast('Mikrofonzugriff wurde verweigert oder ist nicht verfügbar.');
+    showToast(t('toastMicDenied'));
     return;
   }
 
@@ -590,8 +882,8 @@ async function startRecording() {
   try {
     mediaRecorder = chosenMime ? new MediaRecorder(mediaStream, { mimeType: chosenMime }) : new MediaRecorder(mediaStream);
   } catch (err) {
-    showToast('Aufnahme wird von diesem Browser nicht unterstützt.');
-    mediaStream.getTracks().forEach((t) => t.stop());
+    showToast(t('toastRecorderUnsupported'));
+    mediaStream.getTracks().forEach((tr) => tr.stop());
     return;
   }
   mediaRecorder.ondataavailable = (e) => {
@@ -603,8 +895,8 @@ async function startRecording() {
   isRecording = true;
   els.appShell.classList.add('is-recording');
   els.recorderCard.dataset.recording = 'true';
-  els.recordBtn.setAttribute('aria-label', 'Aufnahme beenden');
-  els.recordHint.textContent = 'Tippen, um die Aufnahme zu beenden';
+  els.recordBtn.setAttribute('aria-label', t('recordStopAria'));
+  els.recordHint.textContent = t('recordHintStop');
   els.waveformIdleLabel.style.display = 'none';
 
   finalTranscript = '';
@@ -629,8 +921,8 @@ function stopRecording() {
   isRecording = false;
   els.appShell.classList.remove('is-recording');
   els.recorderCard.dataset.recording = 'false';
-  els.recordBtn.setAttribute('aria-label', 'Aufnahme starten');
-  els.recordHint.textContent = 'Tippen, um die Aufnahme zu starten';
+  els.recordBtn.setAttribute('aria-label', t('recordStartAria'));
+  els.recordHint.textContent = t('recordHintStart');
   els.waveformIdleLabel.style.display = '';
 
   clearInterval(timerInterval);
@@ -641,7 +933,7 @@ function stopRecording() {
   else onRecorderStop();
 
   if (mediaStream) {
-    mediaStream.getTracks().forEach((t) => t.stop());
+    mediaStream.getTracks().forEach((track) => track.stop());
     mediaStream = null;
   }
 }
@@ -660,7 +952,7 @@ async function onRecorderStop() {
   const blob = new Blob(chunks, { type: mimeType });
   chunks = [];
   if (blob.size === 0) {
-    showToast('Aufnahme war leer und wurde verworfen.');
+    showToast(t('toastEmptyDiscarded'));
     resetRecorderUI();
     return;
   }
@@ -682,7 +974,7 @@ async function saveRecording(blob, mimeType, durationSec, transcript) {
     syncedAt: null,
   };
   await dbPutRecording(rec);
-  showToast(transcript ? 'Aufnahme gespeichert.' : 'Aufnahme gespeichert (ohne Transkript).');
+  showToast(transcript ? t('toastSaved') : t('toastSavedNoTranscript'));
   resetRecorderUIAfterSave();
   await updatePendingUI();
   trySync({ silent: true });
@@ -711,9 +1003,9 @@ function revokeAudioUrl(id) {
 }
 
 function statusLabel(status) {
-  if (status === 'synced') return 'Gesendet';
-  if (status === 'error') return 'Fehler';
-  return 'Ausstehend';
+  if (status === 'synced') return t('statusSynced');
+  if (status === 'error') return t('statusError');
+  return t('statusPending');
 }
 
 async function renderHistory() {
@@ -730,7 +1022,7 @@ async function renderHistory() {
 
     const preview = rec.transcript && rec.transcript.length
       ? escapeHtml(rec.transcript.slice(0, 160))
-      : '<em>Kein Transkript verfügbar — Audio wurde trotzdem gespeichert.</em>';
+      : `<em>${escapeHtml(t('noTranscriptPreview'))}</em>`;
 
     card.innerHTML = `
       <div class="recording-card-head" data-role="toggle">
@@ -747,13 +1039,13 @@ async function renderHistory() {
       </div>
       <div class="recording-card-body">
         <audio controls src="${getAudioUrl(rec)}"></audio>
-        <div class="recording-full-transcript">${rec.transcript ? escapeHtml(rec.transcript) : 'Kein Transkript verfügbar.'}</div>
-        ${rec.status === 'error' && rec.lastError ? `<div class="field-hint" style="color:var(--color-error)">Letzter Fehler: ${escapeHtml(rec.lastError)}</div>` : ''}
+        <div class="recording-full-transcript">${rec.transcript ? escapeHtml(rec.transcript) : escapeHtml(t('noTranscriptFull'))}</div>
+        ${rec.status === 'error' && rec.lastError ? `<div class="field-hint" style="color:var(--color-error)">${escapeHtml(t('lastError', rec.lastError))}</div>` : ''}
         <div class="recording-card-actions">
-          <button class="small-btn" data-role="resend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Erneut senden</button>
+          <button class="small-btn" data-role="resend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg><span data-role="resend-label">${escapeHtml(t('resend'))}</span></button>
           <button class="small-btn danger" data-role="delete">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
-            <span data-role="delete-label">Löschen</span>
+            <span data-role="delete-label">${escapeHtml(t('delete'))}</span>
           </button>
         </div>
       </div>
@@ -764,18 +1056,21 @@ async function renderHistory() {
     });
 
     const resendBtn = card.querySelector('[data-role="resend"]');
+    const resendLabel = card.querySelector('[data-role="resend-label"]');
     if (resendBtn) {
       resendBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         if (!navigator.onLine) {
-          showToast('Keine Verbindung — Übermittlung kann nicht gestartet werden.');
+          showToast(t('toastOfflineCannotSend'));
           return;
         }
         resendBtn.disabled = true;
-        resendBtn.textContent = 'Sende…';
-        const fresh = (await dbGetAllRecordings()).find((r) => r.id === rec.id);
-        const ok = fresh ? await syncOne(fresh) : false;
-        showToast(ok ? 'Übermittlung erfolgreich.' : 'Übermittlung fehlgeschlagen.');
+        if (resendLabel) resendLabel.textContent = t('resendSending');
+        // Route through the same submission lock used by trySync() so a
+        // manual resend can never race an in-progress automatic sync for
+        // the same recording (this was the source of duplicate submissions).
+        const ok = await submitRecording(rec.id);
+        showToast(ok ? t('toastResendOk') : t('toastResendFail'));
         await updatePendingUI();
         await renderHistory();
       });
@@ -789,10 +1084,10 @@ async function renderHistory() {
       e.stopPropagation();
       if (!deleteArmed) {
         deleteArmed = true;
-        deleteLabel.textContent = 'Wirklich löschen?';
+        deleteLabel.textContent = t('deleteConfirm');
         armTimeout = setTimeout(() => {
           deleteArmed = false;
-          deleteLabel.textContent = 'Löschen';
+          deleteLabel.textContent = t('delete');
         }, 3000);
         return;
       }
@@ -801,7 +1096,7 @@ async function renderHistory() {
       await dbDeleteRecording(rec.id);
       await updatePendingUI();
       await renderHistory();
-      showToast('Aufnahme gelöscht.');
+      showToast(t('toastDeleted'));
     });
 
     els.recordingList.appendChild(card);
@@ -811,26 +1106,25 @@ async function renderHistory() {
 (function wireDeleteAll() {
   let armed = false;
   let armTimeout = null;
-  const originalText = els.deleteAllLabel.textContent;
   els.deleteAllBtn.addEventListener('click', async () => {
     if (!armed) {
       armed = true;
-      els.deleteAllLabel.textContent = 'Wirklich alle löschen?';
+      els.deleteAllLabel.textContent = t('deleteAllConfirm');
       armTimeout = setTimeout(() => {
         armed = false;
-        els.deleteAllLabel.textContent = originalText;
+        els.deleteAllLabel.textContent = t('deleteAll');
       }, 3500);
       return;
     }
     clearTimeout(armTimeout);
     armed = false;
-    els.deleteAllLabel.textContent = originalText;
+    els.deleteAllLabel.textContent = t('deleteAll');
     audioUrlCache.forEach((url) => URL.revokeObjectURL(url));
     audioUrlCache.clear();
     await dbClearRecordings();
     await updatePendingUI();
     await renderHistory();
-    showToast('Alle Aufnahmen wurden gelöscht.');
+    showToast(t('toastAllDeleted'));
   });
 })();
 
@@ -840,41 +1134,41 @@ async function renderHistory() {
 els.saveWebhookBtn.addEventListener('click', async () => {
   const url = els.webhookInput.value.trim();
   await dbSetSetting('webhookUrl', url);
-  showToast(url ? 'Webhook-URL gespeichert.' : 'Webhook-URL entfernt.');
+  showToast(url ? t('toastWebhookSaved') : t('toastWebhookRemoved'));
   trySync({ silent: true });
 });
 
 els.testWebhookBtn.addEventListener('click', async () => {
   const url = els.webhookInput.value.trim();
   if (!url) {
-    showToast('Bitte zuerst eine URL eingeben.');
+    showToast(t('toastEnterUrlFirst'));
     return;
   }
   els.testWebhookBtn.disabled = true;
   const originalText = els.testWebhookBtn.textContent;
-  els.testWebhookBtn.textContent = 'Teste…';
+  els.testWebhookBtn.textContent = t('testing');
   try {
     const fd = new FormData();
     fd.append('id', 'test-' + Date.now());
-    fd.append('title', 'Qalcurate Verbindungstest');
+    fd.append('title', t('testWebhookTitle'));
     fd.append('createdAt', new Date().toISOString());
     fd.append('durationSec', '0');
-    fd.append('transcript', 'Dies ist eine Testübermittlung von Qalcurate.');
+    fd.append('transcript', t('testWebhookTranscript'));
     fd.append('source', 'qalcurate-webapp-test');
     const res = await fetch(url, { method: 'POST', body: fd });
-    showToast(res.ok ? 'Verbindung erfolgreich — das Zielsystem hat geantwortet.' : `Das Zielsystem antwortete mit Fehler: HTTP ${res.status}`);
+    showToast(res.ok ? t('toastTestOk') : t('toastTestHttpError', res.status));
   } catch (err) {
-    showToast('Verbindung fehlgeschlagen: ' + ((err && err.message) || 'Netzwerkfehler'));
+    showToast(t('toastTestFailed', (err && err.message) || t('networkErrorFallback')));
   } finally {
     els.testWebhookBtn.disabled = false;
-    els.testWebhookBtn.textContent = originalText;
+    els.testWebhookBtn.textContent = t('testConnection');
   }
 });
 
 els.langSelect.addEventListener('change', async () => {
   currentLanguage = els.langSelect.value;
   await dbSetSetting('language', currentLanguage);
-  showToast('Sprache gespeichert.');
+  showToast(t('toastLangSaved'));
 });
 
 /* ==========================================================================
@@ -892,6 +1186,13 @@ if ('serviceWorker' in navigator) {
    Init
    ========================================================================== */
 async function init() {
+  try {
+    currentUiLang = await dbGetSetting('uiLang', 'de');
+  } catch (e) {
+    currentUiLang = 'de';
+  }
+  applyTranslations();
+
   setConnState(navigator.onLine ? 'online' : 'offline');
 
   try {
@@ -900,11 +1201,11 @@ async function init() {
     const webhookUrl = await dbGetSetting('webhookUrl', '');
     els.webhookInput.value = webhookUrl;
   } catch (e) {
-    showToast('Lokaler Speicher (IndexedDB) ist in dieser Umgebung nicht verfügbar.');
+    showToast(t('toastNoStorage'));
   }
 
   if (!getSpeechRecognitionCtor()) {
-    showAsrBanner(true, 'Live-Transkription wird von diesem Browser nicht unterstützt. Die Audioaufnahme funktioniert trotzdem — installiere die App am besten in Chrome oder Edge für Live-Transkription.');
+    showAsrBanner(true, 'asrNotSupported');
   }
 
   await updatePendingUI();
