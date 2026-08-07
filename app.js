@@ -1,7 +1,7 @@
 'use strict';
 
 /* ==========================================================================
-   Qalcurate — Aufnahme, Live-Transkription, Offline-Warteschlange, n8n-Sync
+   Qalcurate — Aufnahme, Live-Transkription, Offline-Warteschlange, Webhook-Sync
    ========================================================================== */
 
 /* ---------------- DOM refs ---------------- */
@@ -26,7 +26,8 @@ const els = {
   asrBannerText: $('#asrBannerText'),
   asrSupportBadge: $('#asrSupportBadge'),
 
-  syncNowBtn: $('#syncNowBtn'),
+  deleteAllBtn: $('#deleteAllBtn'),
+  deleteAllLabel: $('#deleteAllLabel'),
   pendingChip: $('#pendingChip'),
   pendingChipLabel: $('#pendingChipLabel'),
   recordingList: $('#recordingList'),
@@ -38,7 +39,6 @@ const els = {
   langSelect: $('#langSelect'),
   pendingCountVal: $('#pendingCountVal'),
   connStatusVal: $('#connStatusVal'),
-  settingsSyncBtn: $('#settingsSyncBtn'),
   clearDataBtn: $('#clearDataBtn'),
 
   toastStack: $('#toastStack'),
@@ -225,7 +225,7 @@ async function updatePendingUI() {
 async function syncOne(rec, webhookUrlParam) {
   const webhookUrl = webhookUrlParam ?? (await dbGetSetting('webhookUrl', ''));
   if (!webhookUrl) {
-    showToast('Bitte zuerst eine n8n-Webhook-URL in den Einstellungen speichern.');
+    showToast('Bitte zuerst eine Webhook-URL in den Einstellungen speichern.');
     return false;
   }
   try {
@@ -277,7 +277,7 @@ async function trySync({ silent = true } = {}) {
   await updatePendingUI();
   await renderHistory();
   if (!silent && okCount > 0) {
-    showToast(`${okCount} Aufnahme(n) an n8n übermittelt.`);
+    showToast(`${okCount} Aufnahme(n) übermittelt.`);
   } else if (!silent && okCount === 0) {
     showToast('Übermittlung fehlgeschlagen. Wird später erneut versucht.');
   }
@@ -311,6 +311,10 @@ let rafId = null;
 let recognition = null;
 let recognitionShouldRestart = false;
 let finalTranscript = '';
+let lastInterimText = '';
+let acceptResults = false;
+let recognitionEnded = true;
+let flushResolve = null;
 
 function showAsrBanner(show, text) {
   els.asrBanner.hidden = !show;
@@ -338,12 +342,14 @@ function createAndStartRecognition() {
   recognition.interimResults = true;
 
   recognition.onresult = (event) => {
+    if (!acceptResults) return;
     let interim = '';
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const res = event.results[i];
       if (res.isFinal) finalTranscript += res[0].transcript + ' ';
       else interim += res[0].transcript;
     }
+    lastInterimText = interim;
     renderTranscript(finalTranscript, interim);
   };
 
@@ -362,14 +368,42 @@ function createAndStartRecognition() {
       setTimeout(() => {
         if (recognitionShouldRestart && isRecording) createAndStartRecognition();
       }, 250);
+    } else {
+      recognitionEnded = true;
+      if (flushResolve) {
+        const resolve = flushResolve;
+        flushResolve = null;
+        resolve();
+      }
     }
   };
 
+  recognitionEnded = false;
   try {
     recognition.start();
   } catch (e) {
     /* ignore — will be retried on next start or naturally via onend */
   }
+}
+
+/* Waits until the recognition engine has fully flushed its last result (or a
+   safety timeout elapses) so the trailing spoken segment isn't lost when the
+   user stops recording right after speaking. */
+function waitForRecognitionFlush(timeoutMs = 700) {
+  return new Promise((resolve) => {
+    if (recognitionEnded || !recognition) {
+      resolve();
+      return;
+    }
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      resolve();
+    };
+    flushResolve = done;
+    setTimeout(done, timeoutMs);
+  });
 }
 
 function startRecognition() {
@@ -455,6 +489,7 @@ function stopWaveform() {
 function resetRecorderUI() {
   els.titleInput.value = '';
   finalTranscript = '';
+  lastInterimText = '';
   renderTranscript('', '');
   els.timer.textContent = '00:00';
 }
@@ -496,6 +531,8 @@ async function startRecording() {
   els.waveformIdleLabel.style.display = 'none';
 
   finalTranscript = '';
+  lastInterimText = '';
+  acceptResults = true;
   renderTranscript('', '');
 
   startTimeMs = Date.now();
@@ -532,6 +569,15 @@ function stopRecording() {
 }
 
 async function onRecorderStop() {
+  // Give SpeechRecognition a moment to flush its final result — otherwise the
+  // last spoken segment (visible live as "interim" text) can be lost.
+  await waitForRecognitionFlush();
+  if (lastInterimText) {
+    finalTranscript = (finalTranscript + ' ' + lastInterimText).trim() + ' ';
+    lastInterimText = '';
+  }
+  acceptResults = false;
+
   const mimeType = (mediaRecorder && mediaRecorder.mimeType) || (chunks[0] && chunks[0].type) || 'audio/webm';
   const blob = new Blob(chunks, { type: mimeType });
   chunks = [];
@@ -558,7 +604,7 @@ async function saveRecording(blob, mimeType, durationSec, transcript) {
     syncedAt: null,
   };
   await dbPutRecording(rec);
-  showToast(transcript ? 'Aufnahme gespeichert und wird übermittelt.' : 'Aufnahme gespeichert (ohne Transkript).');
+  showToast(transcript ? 'Aufnahme gespeichert.' : 'Aufnahme gespeichert (ohne Transkript).');
   resetRecorderUI();
   await updatePendingUI();
   trySync({ silent: true });
@@ -626,7 +672,7 @@ async function renderHistory() {
         <div class="recording-full-transcript">${rec.transcript ? escapeHtml(rec.transcript) : 'Kein Transkript verfügbar.'}</div>
         ${rec.status === 'error' && rec.lastError ? `<div class="field-hint" style="color:var(--color-error)">Letzter Fehler: ${escapeHtml(rec.lastError)}</div>` : ''}
         <div class="recording-card-actions">
-          ${rec.status !== 'synced' ? `<button class="small-btn" data-role="resend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Erneut senden</button>` : ''}
+          <button class="small-btn" data-role="resend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>Erneut senden</button>
           <button class="small-btn danger" data-role="delete">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>
             <span data-role="delete-label">Löschen</span>
@@ -680,8 +726,31 @@ async function renderHistory() {
   }
 }
 
-els.syncNowBtn.addEventListener('click', () => trySync({ silent: false }));
-els.settingsSyncBtn.addEventListener('click', () => trySync({ silent: false }));
+(function wireDeleteAll() {
+  let armed = false;
+  let armTimeout = null;
+  const originalText = els.deleteAllLabel.textContent;
+  els.deleteAllBtn.addEventListener('click', async () => {
+    if (!armed) {
+      armed = true;
+      els.deleteAllLabel.textContent = 'Wirklich alle löschen?';
+      armTimeout = setTimeout(() => {
+        armed = false;
+        els.deleteAllLabel.textContent = originalText;
+      }, 3500);
+      return;
+    }
+    clearTimeout(armTimeout);
+    armed = false;
+    els.deleteAllLabel.textContent = originalText;
+    audioUrlCache.forEach((url) => URL.revokeObjectURL(url));
+    audioUrlCache.clear();
+    await dbClearRecordings();
+    await updatePendingUI();
+    await renderHistory();
+    showToast('Alle Aufnahmen wurden gelöscht.');
+  });
+})();
 
 /* ==========================================================================
    Settings
@@ -711,7 +780,7 @@ els.testWebhookBtn.addEventListener('click', async () => {
     fd.append('transcript', 'Dies ist eine Testübermittlung von Qalcurate.');
     fd.append('source', 'qalcurate-webapp-test');
     const res = await fetch(url, { method: 'POST', body: fd });
-    showToast(res.ok ? 'Verbindung erfolgreich — n8n hat geantwortet.' : `n8n antwortete mit Fehler: HTTP ${res.status}`);
+    showToast(res.ok ? 'Verbindung erfolgreich — das Zielsystem hat geantwortet.' : `Das Zielsystem antwortete mit Fehler: HTTP ${res.status}`);
   } catch (err) {
     showToast('Verbindung fehlgeschlagen: ' + ((err && err.message) || 'Netzwerkfehler'));
   } finally {

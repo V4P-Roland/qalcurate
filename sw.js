@@ -48,7 +48,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // Never intercept non-GET requests (e.g. the POST to the n8n webhook) —
+  // Never intercept non-GET requests (e.g. the POST to the configured webhook) —
   // those must always go straight to the network.
   if (req.method !== 'GET') return;
 

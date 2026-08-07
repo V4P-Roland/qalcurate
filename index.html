@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Qalcurate — Gespräche aufnehmen &amp; transkribieren</title>
-<meta name="description" content="Qalcurate zeichnet Gespräche auf, transkribiert sie live im Browser und übermittelt sie automatisch an n8n — auch wenn du zwischenzeitlich offline warst." />
+<meta name="description" content="Qalcurate zeichnet Gespräche auf, transkribiert sie live im Browser und übermittelt sie automatisch per Webhook — auch wenn du zwischenzeitlich offline warst." />
 
 <meta name="theme-color" content="#003027" />
 <link rel="manifest" href="./manifest.json" />
@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-title" content="Qalcurate" />
 
 <meta property="og:title" content="Qalcurate — Gespräche aufnehmen & transkribieren" />
-<meta property="og:description" content="Aufnahme, Live-Transkription und automatische Übermittlung an n8n — auch offline." />
+<meta property="og:description" content="Aufnahme, Live-Transkription und automatische Übermittlung per Webhook — auch offline." />
 <meta property="og:type" content="website" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -35,8 +35,8 @@
   <!-- ============ HEADER ============ -->
   <header class="app-header">
     <div class="brand">
-      <img class="brand-logo brand-logo-light" src="./assets/logo/qalcurate-icon-color.svg" alt="Qalcurate Logo" width="30" height="30" />
-      <img class="brand-logo brand-logo-dark" src="./assets/logo/qalcurate-icon-white.svg" alt="Qalcurate Logo" width="30" height="30" />
+      <img class="brand-logo brand-logo-light" src="./assets/logo/qalcurate-icon-color.svg" alt="Qalcurate Logo" width="42" height="42" />
+      <img class="brand-logo brand-logo-dark" src="./assets/logo/qalcurate-icon-white.svg" alt="Qalcurate Logo" width="42" height="42" />
       <span class="brand-name">Qalcurate</span>
     </div>
     <div class="header-actions">
@@ -57,7 +57,7 @@
     <section class="view is-active" id="view-recorder" data-view="recorder" aria-labelledby="recorderTitle">
       <div>
         <h1 class="page-title" id="recorderTitle">Aufnahme</h1>
-        <p class="page-subtitle">Zeichne ein Gespräch auf — bei fehlender Verbindung wird es lokal gespeichert und automatisch übermittelt, sobald du wieder online bist.</p>
+        <p class="page-subtitle">Zeichne ein Gespräch auf — bei fehlender Verbindung wird es lokal gespeichert und automatisch übermittelt, sobald du wieder online bist und ein Webhook konfiguriert wurde.</p>
       </div>
 
       <div class="banner" id="asrBanner" hidden>
@@ -107,9 +107,9 @@
       </div>
 
       <div class="history-toolbar">
-        <button class="pill-btn" id="syncNowBtn" data-testid="button-sync-now">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          Jetzt synchronisieren
+        <button class="pill-btn is-danger" id="deleteAllBtn" data-testid="button-delete-all">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/><path d="M10 11v6M14 11v6"/></svg>
+          <span id="deleteAllLabel">Alle löschen</span>
         </button>
         <span class="status-chip" data-state="offline" id="pendingChip" hidden>
           <span class="status-dot"></span>
@@ -129,14 +129,14 @@
     <section class="view" id="view-settings" data-view="settings" aria-labelledby="settingsTitle">
       <div>
         <h1 class="page-title" id="settingsTitle">Einstellungen</h1>
-        <p class="page-subtitle">Verbindung zu n8n, Spracheinstellungen und App-Verhalten.</p>
+        <p class="page-subtitle">Verbindung zum Webhook, Spracheinstellungen und App-Verhalten.</p>
       </div>
 
       <div class="settings-section">
-        <h2>n8n-Webhook</h2>
+        <h2>Webhook</h2>
         <div class="field-group">
           <label for="webhookInput">Webhook-URL</label>
-          <input type="url" class="field-input" id="webhookInput" placeholder="https://dein-n8n-server.tld/webhook/qalcurate" data-testid="input-webhook-url" />
+          <input type="url" class="field-input" id="webhookInput" placeholder="https://dein-server.tld/webhook/qalcurate" data-testid="input-webhook-url" />
           <p class="field-hint">Jede Aufnahme wird als Formulardaten (Titel, Zeitstempel, Dauer, Transkript, Audiodatei) per POST an diese URL gesendet, sobald eine Internetverbindung besteht.</p>
         </div>
         <div class="btn-row">
@@ -170,14 +170,11 @@
           <span>Verbindungsstatus</span>
           <span class="val" id="connStatusVal">Online</span>
         </div>
-        <div class="btn-row">
-          <button class="btn btn-secondary" id="settingsSyncBtn" data-testid="button-settings-sync">Jetzt synchronisieren</button>
-        </div>
       </div>
 
       <div class="settings-section">
         <h2>Daten</h2>
-        <p class="about-text">Alle Aufnahmen werden ausschließlich lokal auf diesem Gerät gespeichert (IndexedDB), bis sie erfolgreich an n8n übermittelt wurden.</p>
+        <p class="about-text">Alle Aufnahmen werden ausschließlich lokal auf diesem Gerät gespeichert (IndexedDB), bis sie erfolgreich an den Webhook übermittelt wurden.</p>
         <button class="btn btn-danger" id="clearDataBtn" data-testid="button-clear-data">Alle lokalen Daten löschen</button>
       </div>
 
