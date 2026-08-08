@@ -1,0 +1,8 @@
+services:
+  qalcurate:
+    build: .
+    image: qalcurate:latest
+    container_name: qalcurate
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:80"
